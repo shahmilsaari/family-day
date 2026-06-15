@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Game, Team } from "@prisma/client";
 import {
   createGame,
@@ -8,7 +8,8 @@ import {
   deleteGame,
   deleteTeam,
   updateGame,
-  updateTeam
+  updateTeam,
+  updateGameOrder
 } from "@/app/actions";
 
 type TeamWithMembers = Team & { members: { name: string }[] };
@@ -20,9 +21,54 @@ type LobbyConsoleProps = {
   games: GameWithScores[];
 };
 
+function DragHandleIcon() {
+  return (
+    <svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.45 }}>
+      <circle cx="2" cy="3" r="1" />
+      <circle cx="2" cy="10" r="1" />
+      <circle cx="2" cy="17" r="1" />
+      <circle cx="10" cy="3" r="1" />
+      <circle cx="10" cy="10" r="1" />
+      <circle cx="10" cy="17" r="1" />
+    </svg>
+  );
+}
+
 export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
   const [lobbyTab, setLobbyTab] = useState<"teams" | "games">("teams");
   const eventReady = eventId !== null;
+
+  const [orderedGames, setOrderedGames] = useState(games);
+  const [draggedGameId, setDraggedGameId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (draggedGameId === null) {
+      const sorted = [...games].sort((a, b) => a.order - b.order);
+      setOrderedGames(sorted);
+    }
+  }, [games, draggedGameId]);
+
+  const moveGame = (targetGameId: number) => {
+    if (draggedGameId === null || draggedGameId === targetGameId) return;
+
+    setOrderedGames((currentGames) => {
+      const draggedIndex = currentGames.findIndex((g) => g.id === draggedGameId);
+      const targetIndex = currentGames.findIndex((g) => g.id === targetGameId);
+
+      if (draggedIndex < 0 || targetIndex < 0) return currentGames;
+
+      const nextGames = [...currentGames];
+      const [draggedGame] = nextGames.splice(draggedIndex, 1);
+      nextGames.splice(targetIndex, 0, draggedGame);
+      return nextGames;
+    });
+  };
+
+  const handleDragEnd = async () => {
+    setDraggedGameId(null);
+    const orderedIds = orderedGames.map((g) => g.id);
+    await updateGameOrder(orderedIds);
+  };
 
   return (
     <section className="glass-panel panel-pad stack lobby-console">
@@ -174,58 +220,76 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
           </form>
 
           <div className="record-list compact-list games-cards-grid">
-            {games.length ? (
-              games.map((game) => (
-                <article className="record-card game-workspace-card" key={game.id}>
-                  <div className="record-summary game-summary-block">
-                    <div>
-                      <strong>{game.name}</strong>
-                      <span className="game-order-badge">Display index {game.order}</span>
-                    </div>
-                    <a className="secondary-btn edit-game-btn" href={`#edit-game-${game.id}`}>
-                      Edit
-                    </a>
-                  </div>
-
-                  <form action={deleteGame} className="remove-form card-remove-trigger">
-                    <input type="hidden" name="gameId" value={game.id} />
-                    <button className="danger-btn remove-btn-small" type="submit">
-                      Remove Game
-                    </button>
-                  </form>
-
-                  <div className="modal" id={`edit-game-${game.id}`}>
-                    <a className="modal-backdrop" href="#" aria-label="Close edit game" />
-                    <div className="modal-panel animate-modal-entrance">
-                      <div className="modal-header">
+            {orderedGames.length ? (
+              orderedGames.map((game) => {
+                const isDragging = draggedGameId === game.id;
+                return (
+                  <article
+                    className={`record-card game-workspace-card ${isDragging ? "is-dragging" : ""}`}
+                    key={game.id}
+                    draggable
+                    onDragStart={() => setDraggedGameId(game.id)}
+                    onDragOver={(event) => {
+                      event.preventDefault();
+                      moveGame(game.id);
+                    }}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <div className="record-summary game-summary-block">
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <div style={{ cursor: "grab", display: "flex", alignItems: "center" }} title="Drag to reorder game">
+                          <DragHandleIcon />
+                        </div>
                         <div>
-                          <p className="eyebrow">Edit Competition</p>
-                          <h3>{game.name}</h3>
+                          <strong>{game.name}</strong>
+                          <span className="game-order-badge">Display index {game.order}</span>
                         </div>
-                        <a className="close-btn" href="#" aria-label="Close">
-                          x
-                        </a>
                       </div>
-                      <form action={updateGame} className="form-grid compact edit-form">
-                        <input type="hidden" name="gameId" value={game.id} />
-                        <div className="field">
-                          <label htmlFor={`edit-game-name-${game.id}`}>Game Name</label>
-                          <input id={`edit-game-name-${game.id}`} name="name" defaultValue={game.name} />
-                        </div>
-                        <div className="field">
-                          <label htmlFor={`edit-game-order-${game.id}`}>Order</label>
-                          <input id={`edit-game-order-${game.id}`} name="order" type="number" defaultValue={game.order} />
-                        </div>
-                        <div className="actions modal-save-btn">
-                          <button className="primary-btn" type="submit">
-                            Save Competition
-                          </button>
-                        </div>
-                      </form>
+                      <a className="secondary-btn edit-game-btn" href={`#edit-game-${game.id}`}>
+                        Edit
+                      </a>
                     </div>
-                  </div>
-                </article>
-              ))
+
+                    <form action={deleteGame} className="remove-form card-remove-trigger">
+                      <input type="hidden" name="gameId" value={game.id} />
+                      <button className="danger-btn remove-btn-small" type="submit">
+                        Remove Game
+                      </button>
+                    </form>
+
+                    <div className="modal" id={`edit-game-${game.id}`}>
+                      <a className="modal-backdrop" href="#" aria-label="Close edit game" />
+                      <div className="modal-panel animate-modal-entrance">
+                        <div className="modal-header">
+                          <div>
+                            <p className="eyebrow">Edit Competition</p>
+                            <h3>{game.name}</h3>
+                          </div>
+                          <a className="close-btn" href="#" aria-label="Close">
+                            x
+                          </a>
+                        </div>
+                        <form action={updateGame} className="form-grid compact edit-form">
+                          <input type="hidden" name="gameId" value={game.id} />
+                          <div className="field">
+                            <label htmlFor={`edit-game-name-${game.id}`}>Game Name</label>
+                            <input id={`edit-game-name-${game.id}`} name="name" defaultValue={game.name} />
+                          </div>
+                          <div className="field">
+                            <label htmlFor={`edit-game-order-${game.id}`}>Order</label>
+                            <input id={`edit-game-order-${game.id}`} name="order" type="number" defaultValue={game.order} />
+                          </div>
+                          <div className="actions modal-save-btn">
+                            <button className="primary-btn" type="submit">
+                              Save Competition
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })
             ) : (
               <span className="muted empty-note">No active games setup yet.</span>
             )}

@@ -150,6 +150,22 @@ export async function deleteGame(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
+export async function updateGameOrder(orderedGameIds: number[]) {
+  if (!orderedGameIds || orderedGameIds.length === 0) return;
+
+  await prisma.$transaction(
+    orderedGameIds.map((gameId, index) =>
+      prisma.game.update({
+        where: { id: gameId },
+        data: { order: index + 1 }
+      })
+    )
+  );
+
+  revalidatePath("/");
+  revalidatePath("/dashboard");
+}
+
 export async function createTentativeSchedule(formData: FormData) {
   const eventId = parseInteger(formData.get("eventId"));
   const time = String(formData.get("time") ?? "").trim();

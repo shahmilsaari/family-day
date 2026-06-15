@@ -2538,6 +2538,18 @@ input:focus, textarea:focus, select:focus {
   background: #ffffff;
 }
 
+.game-workspace-card[draggable="true"] {
+  cursor: grab;
+}
+
+.game-workspace-card.is-dragging {
+  opacity: 0.45;
+  border: 1px dashed rgba(8, 116, 67, 0.4);
+  background: rgba(233, 250, 240, 0.4);
+  transform: scale(0.98);
+  box-shadow: none;
+}
+
 .team-summary-block, .game-summary-block {
   display: flex;
   justify-content: space-between;
