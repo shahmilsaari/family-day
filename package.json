@@ -1,0 +1,32 @@
+{
+  "name": "family-day",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "prisma generate && node scripts/init-sqlite.mjs && next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "db:seed": "node scripts/init-sqlite.mjs && node prisma/seed.js"
+  },
+  "dependencies": {
+    "@prisma/client": "latest",
+    "next": "latest",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "@prisma/adapter-better-sqlite3": "latest",
+    "better-sqlite3": "latest"
+  },
+  "devDependencies": {
+    "prisma": "latest",
+    "typescript": "latest",
+    "@types/node": "latest",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  }
+}
