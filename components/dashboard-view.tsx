@@ -178,10 +178,10 @@ export function DashboardView({ state }: { state: DashboardState }) {
             <strong className="metric-value">{totals.games}</strong>
             <div className="metric-glow-dot blue" />
           </div>
-          <div className="metric-stat-card">
+          <div className="metric-stat-card spotlight">
             <span className="metric-label">Leader Spot</span>
             <strong className="metric-value leader-name">{featuredTeam ? featuredTeam.name : "None"}</strong>
-            {featuredTeam && <div className="metric-glow-dot gold" />}
+            {featuredTeam && <div className="metric-glow-dot gold pulsing" />}
           </div>
         </div>
       </section>
