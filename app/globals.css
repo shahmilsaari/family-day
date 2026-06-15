@@ -117,7 +117,7 @@ select {
 }
 
 .panel-pad {
-  padding: 20px;
+  padding: 16px;
 }
 
 .glass-panel h2,
@@ -198,7 +198,7 @@ select {
 
 .form-grid {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .form-grid.compact {
@@ -207,11 +207,11 @@ select {
 
 .field {
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
 .field label {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 750;
   color: #24372d;
 }
@@ -222,14 +222,15 @@ select {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 11px 12px;
+  padding: 8px 11px;
   background: rgba(255, 255, 255, 0.82);
   color: var(--text);
   outline-color: var(--accent-2);
+  font-size: 0.88rem;
 }
 
 .field textarea {
-  min-height: 104px;
+  min-height: 80px;
   resize: vertical;
 }
 
@@ -390,8 +391,8 @@ select {
 
 .record-card {
   display: grid;
-  gap: 8px;
-  padding: 14px;
+  gap: 6px;
+  padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background:
@@ -442,7 +443,7 @@ select {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  padding: 8px;
+  padding: 4px;
   border: 1px solid rgba(8, 116, 67, 0.14);
   border-radius: 12px;
   background: rgba(233, 250, 240, 0.58);
@@ -455,7 +456,7 @@ select {
   gap: 10px;
   border: 1px solid transparent;
   border-radius: 9px;
-  padding: 13px 14px;
+  padding: 8px 12px;
   color: var(--muted);
   background: transparent;
   cursor: pointer;
@@ -1076,40 +1077,26 @@ select {
 /* Individual Podium Rank Dimensions */
 .podium-rank-1 {
   order: 2;
-  height: 280px;
-  background: linear-gradient(135deg, rgba(255, 248, 220, 0.82), rgba(255, 223, 115, 0.65));
-  border-color: rgba(212, 175, 55, 0.35);
-  box-shadow: 0 15px 35px rgba(212, 175, 55, 0.15);
+  height: 270px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+  border-color: rgba(8, 116, 67, 0.25);
+  box-shadow: 0 12px 28px rgba(8, 116, 67, 0.06);
 }
 
 .podium-rank-2 {
   order: 1;
   height: 230px;
-  background: linear-gradient(135deg, rgba(243, 244, 246, 0.85), rgba(209, 213, 219, 0.65));
-  border-color: rgba(156, 163, 175, 0.3);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.62));
+  border-color: rgba(8, 116, 67, 0.15);
+  box-shadow: 0 8px 20px rgba(8, 116, 67, 0.03);
 }
 
 .podium-rank-3 {
   order: 3;
   height: 190px;
-  background: linear-gradient(135deg, rgba(254, 243, 199, 0.72), rgba(217, 119, 6, 0.35));
-  border-color: rgba(217, 119, 6, 0.25);
-}
-
-.champion-glow::after {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #ffd700, #ffb800, #ff6b00, #ffd700);
-  background-size: 300% 300%;
-  z-index: -1;
-  opacity: 0.2;
-  animation: shimmerBorder 5s ease infinite;
-}
-
-.champion-glow:hover::after {
-  opacity: 0.5;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.55));
+  border-color: rgba(8, 116, 67, 0.12);
+  box-shadow: 0 6px 15px rgba(8, 116, 67, 0.02);
 }
 
 .podium-badge {
@@ -1464,13 +1451,13 @@ select {
 }
 
 .rank-1-row {
-  background: rgba(255, 215, 0, 0.04);
+  background: transparent;
 }
 .rank-2-row {
-  background: rgba(148, 163, 184, 0.03);
+  background: transparent;
 }
 .rank-3-row {
-  background: rgba(205, 127, 50, 0.03);
+  background: transparent;
 }
 
 .badge-wrapper {
@@ -1512,8 +1499,8 @@ select {
 .leader-pill {
   font-size: 0.65rem;
   font-weight: 850;
-  color: #ffd700;
-  background: #1e3a24;
+  color: var(--accent);
+  background: rgba(21, 160, 97, 0.12);
   padding: 2px 6px;
   border-radius: 99px;
   text-transform: uppercase;
@@ -2345,20 +2332,20 @@ input:focus, textarea:focus, select:focus {
 }
 
 .timeline-rail {
-  margin: 16px 0 16px 20px;
+  margin: 10px 0 10px 15px;
   padding: 0;
   list-style: none;
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 12px;
 }
 
 .timeline-rail::before {
   content: "";
   position: absolute;
   top: 6px;
-  left: 14px;
+  left: 11px;
   bottom: 6px;
   width: 2px;
   background: linear-gradient(180deg, var(--accent) 0%, rgba(8, 116, 67, 0.12) 100%);
@@ -2367,14 +2354,14 @@ input:focus, textarea:focus, select:focus {
 
 .timeline-rail-node {
   display: flex;
-  gap: 18px;
+  gap: 12px;
   position: relative;
   z-index: 1;
 }
 
 .timeline-marker {
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: #ffffff;
   border: 2px solid var(--accent);
@@ -2382,6 +2369,11 @@ input:focus, textarea:focus, select:focus {
   place-items: center;
   flex-shrink: 0;
   box-shadow: 0 2px 6px rgba(8, 116, 67, 0.15);
+}
+
+.timeline-marker svg {
+  width: 12px !important;
+  height: 12px !important;
 }
 
 .marker-icon-wrapper {
@@ -2395,8 +2387,8 @@ input:focus, textarea:focus, select:focus {
   flex: 1;
   background: rgba(255, 255, 255, 0.65);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px;
+  border-radius: 8px;
+  padding: 8px 12px;
   box-shadow: 0 4px 14px rgba(0,0,0,0.01);
   transition: var(--transition-smooth);
 }
@@ -2412,22 +2404,22 @@ input:focus, textarea:focus, select:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   border-bottom: 1px dashed rgba(8, 116, 67, 0.08);
-  padding-bottom: 4px;
+  padding-bottom: 2px;
 }
 
 .time-indicator {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   font-weight: 800;
   color: var(--accent);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .secondary-edit-trigger {
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   font-weight: 750;
   color: var(--muted);
   transition: color 0.2s;
@@ -2440,30 +2432,30 @@ input:focus, textarea:focus, select:focus {
 .timeline-card-body {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .timeline-card-body strong {
-  font-size: 0.98rem;
+  font-size: 0.92rem;
   color: var(--text);
 }
 
 .location-tag {
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   color: var(--muted);
   font-weight: 650;
 }
 
 .notes-para {
-  margin: 4px 0 0 0;
-  font-size: 0.85rem;
+  margin: 2px 0 0 0;
+  font-size: 0.78rem;
   color: var(--muted);
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 .agenda-add-form {
-  border-top: 1px solid var(--border);
-  padding-top: 16px;
+  border-top: 1px dashed rgba(8, 116, 67, 0.16);
+  padding-top: 12px;
 }
 
 /* Modals & Popups animations */
@@ -2489,11 +2481,32 @@ input:focus, textarea:focus, select:focus {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.lobby-create-form:not(.compact) {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.lobby-create-form:not(.compact) .field:nth-of-type(1) {
+  grid-column: 1;
+}
+
+.lobby-create-form:not(.compact) .field:nth-of-type(2) {
+  grid-column: 2;
+  grid-row: span 2;
+}
+
+.lobby-create-form:not(.compact) .form-save-actions {
+  grid-column: 1;
+  align-self: end;
+  margin-top: 0;
+}
+
 .teams-cards-grid, .games-cards-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  margin-top: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
 }
 
 .team-workspace-card, .game-workspace-card {
@@ -2514,7 +2527,7 @@ input:focus, textarea:focus, select:focus {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .members-count {
@@ -2527,7 +2540,7 @@ input:focus, textarea:focus, select:focus {
   align-items: center;
   flex-wrap: wrap;
   gap: 0;
-  margin: 6px 0;
+  margin: 4px 0;
   padding-left: 5px;
 }
 
@@ -2561,7 +2574,7 @@ input:focus, textarea:focus, select:focus {
 .card-remove-trigger {
   border-top: 1px dashed rgba(8, 116, 67, 0.08);
   padding-top: 6px;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .remove-btn-small {

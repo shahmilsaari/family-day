@@ -296,14 +296,12 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
               return (
                 <div
                   key={team.id}
-                  className={`podium-card podium-rank-${originalRank} ${isExpanded ? "expanded" : ""} ${
-                    isFirst ? "champion-glow" : ""
-                  }`}
+                  className={`podium-card podium-rank-${originalRank} ${isExpanded ? "expanded" : ""}`}
                   onClick={() => toggleRow(team.id)}
                 >
                   <div className="podium-badge">
                     {isFirst ? (
-                      <TrophyIcon className="trophy-animate" />
+                      <TrophyIcon />
                     ) : isSecond ? (
                       <MedalIcon color="#c0c0c0" />
                     ) : (
