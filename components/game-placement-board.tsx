@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { clearGamePlacements, saveGamePlacements } from "@/app/actions";
+import { notify } from "@/components/toast-host";
 
 type PlacementTeam = {
   id: number;
@@ -61,15 +62,28 @@ export function GamePlacementBoard({
   const router = useRouter();
   const [orderedTeams, setOrderedTeams] = useState(teams);
   const [draggedTeamId, setDraggedTeamId] = useState<number | null>(null);
+  const [pendingAction, setPendingAction] = useState<"save" | "clear" | null>(null);
 
   const handleSavePlacements = async (formData: FormData) => {
-    await saveGamePlacements(formData);
-    router.refresh();
+    setPendingAction("save");
+    try {
+      await saveGamePlacements(formData);
+      notify("Placements saved");
+      router.refresh();
+    } finally {
+      setPendingAction(null);
+    }
   };
 
   const handleClearPlacements = async (formData: FormData) => {
-    await clearGamePlacements(formData);
-    router.refresh();
+    setPendingAction("clear");
+    try {
+      await clearGamePlacements(formData);
+      notify("Placements cleared", "warning");
+      router.refresh();
+    } finally {
+      setPendingAction(null);
+    }
   };
 
   const moveTeam = (targetTeamId: number) => {
@@ -84,6 +98,21 @@ export function GamePlacementBoard({
       const nextTeams = [...currentTeams];
       const [draggedTeam] = nextTeams.splice(draggedIndex, 1);
       nextTeams.splice(targetIndex, 0, draggedTeam);
+      return nextTeams;
+    });
+  };
+
+  const moveTeamByStep = (teamId: number, direction: -1 | 1) => {
+    setOrderedTeams((currentTeams) => {
+      const currentIndex = currentTeams.findIndex((team) => team.id === teamId);
+      const nextIndex = currentIndex + direction;
+
+      if (currentIndex < 0 || nextIndex < 0 || nextIndex >= currentTeams.length) {
+        return currentTeams;
+      }
+
+      const nextTeams = [...currentTeams];
+      [nextTeams[currentIndex], nextTeams[nextIndex]] = [nextTeams[nextIndex], nextTeams[currentIndex]];
       return nextTeams;
     });
   };
@@ -131,6 +160,25 @@ export function GamePlacementBoard({
                   <span className="team-row-name">{team.name}</span>
                   <small className="team-row-members truncate-members">{team.members.join(", ") || "No members registered"}</small>
                 </div>
+
+                <div className="placement-stepper" aria-label={`Move ${team.name}`}>
+                  <button
+                    type="button"
+                    onClick={() => moveTeamByStep(team.id, -1)}
+                    disabled={index === 0}
+                    aria-label={`Move ${team.name} up`}
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveTeamByStep(team.id, 1)}
+                    disabled={index === orderedTeams.length - 1}
+                    aria-label={`Move ${team.name} down`}
+                  >
+                    ↓
+                  </button>
+                </div>
               </li>
             );
           })}
@@ -148,17 +196,24 @@ export function GamePlacementBoard({
           <input type="hidden" name="eventId" value={eventId} />
           <input type="hidden" name="gameId" value={gameId} />
           <input type="hidden" name="orderedTeamIds" value={orderedTeams.map((team) => team.id).join(",")} />
-          <button className="primary-btn save-deck-btn" type="submit" disabled={orderedTeams.length === 0}>
+          <button className="primary-btn save-deck-btn" type="submit" disabled={orderedTeams.length === 0 || pendingAction !== null}>
             <SaveIcon />
-            <span>Save Scores</span>
+            <span>{pendingAction === "save" ? "Saving..." : "Save Scores"}</span>
           </button>
         </form>
         
-        <form action={handleClearPlacements}>
+        <form
+          action={handleClearPlacements}
+          onSubmit={(event) => {
+            if (!window.confirm(`Clear placements for ${gameName}?`)) {
+              event.preventDefault();
+            }
+          }}
+        >
           <input type="hidden" name="gameId" value={gameId} />
-          <button className="danger-btn clear-deck-btn" type="submit">
+          <button className="danger-btn clear-deck-btn" type="submit" disabled={pendingAction !== null}>
             <TrashIcon />
-            <span>Clear Scores</span>
+            <span>{pendingAction === "clear" ? "Clearing..." : "Clear Scores"}</span>
           </button>
         </form>
       </div>

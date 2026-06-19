@@ -95,6 +95,8 @@ export function DashboardView({ state }: { state: DashboardState }) {
     : startLabel ?? endLabel ?? "Date not scheduled";
   const nextAgendaItem = timetable[0] ?? null;
   const eventStatus = event ? "Live workspace" : "Setup needed";
+  const eventQuery = event ? `?eventId=${event.id}` : "";
+  const pdfHref = event ? `/api/tentative-pdf?eventId=${event.id}` : "#";
 
   return (
     <main className="dashboard-grid dashboard-workspace-shell slide-up-animation">
@@ -136,7 +138,31 @@ export function DashboardView({ state }: { state: DashboardState }) {
         </div>
       </section>
 
-      <section className="dashboard-overview-grid">
+      <div className="dashboard-admin-layout">
+        <aside className="dashboard-sidebar glass-panel panel-pad" aria-label="Dashboard sections">
+          <div className="dashboard-sidebar-brand">
+            <span className="sidebar-status-dot" />
+            <div>
+              <p className="eyebrow">Admin Navigation</p>
+              <strong>{event ? event.title : "Family Day Setup"}</strong>
+            </div>
+          </div>
+          <nav className="dashboard-sidebar-nav">
+            <a href="#overview">Overview</a>
+            <a href="#setup">Event & Agenda</a>
+            <a href="#registration">Teams & Games</a>
+            <a href="#arena">Placement Arena</a>
+            <a href="#standings">Live Standings</a>
+            <a href={`/display${eventQuery}`}>Open Display</a>
+          </nav>
+          <div className="dashboard-sidebar-footer">
+            <span>{totals.teams} teams</span>
+            <span>{totals.games} games</span>
+          </div>
+        </aside>
+
+        <div className="dashboard-admin-content">
+      <section id="overview" className="dashboard-overview-grid">
         <article className="glass-panel panel-pad overview-card overview-card-highlight">
           <div className="overview-card-icon"><CalendarIcon /></div>
           <div>
@@ -174,7 +200,7 @@ export function DashboardView({ state }: { state: DashboardState }) {
         </article>
       </section>
 
-      <section className="section-grid main-setup dashboard-command-grid">
+      <section id="setup" className="section-grid main-setup dashboard-command-grid">
         <div className="dashboard-command-stack">
           <div className="glass-panel panel-pad stack config-event-panel command-card">
             <div className="dashboard-section-heading">
@@ -186,7 +212,7 @@ export function DashboardView({ state }: { state: DashboardState }) {
             </div>
             <p className="muted">Configure the event title, venue, year, and date range.</p>
 
-            <RefreshActionForm action={saveEvent} className="form-grid interactive-form">
+            <RefreshActionForm action={saveEvent} className="form-grid interactive-form" successMessage="Event settings saved">
               <input type="hidden" name="eventId" value={event?.id ?? ""} />
 
               <div className="field">
@@ -263,7 +289,7 @@ export function DashboardView({ state }: { state: DashboardState }) {
             <div className="dashboard-quick-links">
               <a
                 className={`ghost-link${event ? "" : " is-disabled"}`}
-                href={event ? "/api/tentative-pdf" : "#"}
+                href={pdfHref}
                 aria-disabled={!event}
                 download={event ? "tentative-timetable.pdf" : undefined}
                 target={event ? "_blank" : undefined}
@@ -271,8 +297,8 @@ export function DashboardView({ state }: { state: DashboardState }) {
               >
                 Export timetable PDF
               </a>
-              <Link className="ghost-link" href="/">
-                Back to overview
+              <Link className="ghost-link" href="/events">
+                Manage events
               </Link>
             </div>
           </div>
@@ -287,7 +313,7 @@ export function DashboardView({ state }: { state: DashboardState }) {
         />
       </section>
 
-      <section className="dashboard-stage">
+      <section id="registration" className="dashboard-stage">
         <div className="dashboard-stage-head">
           <div>
             <p className="eyebrow">Team Builder</p>
@@ -298,7 +324,7 @@ export function DashboardView({ state }: { state: DashboardState }) {
         <LobbyConsole eventId={event?.id ?? null} teams={teams} games={games} />
       </section>
 
-      <section className="dashboard-stage">
+      <section id="arena" className="dashboard-stage">
         <div className="dashboard-stage-head">
           <div>
             <p className="eyebrow">Arena</p>
@@ -309,7 +335,7 @@ export function DashboardView({ state }: { state: DashboardState }) {
         <PlacementConsole eventId={event?.id ?? null} games={games} teams={teams} />
       </section>
 
-      <section className="glass-panel panel-pad stack leaderboard-panel-section-wrap dashboard-stage">
+      <section id="standings" className="glass-panel panel-pad stack leaderboard-panel-section-wrap dashboard-stage">
         <div className="dashboard-stage-head">
           <div>
             <p className="eyebrow">Standings</p>
@@ -319,6 +345,9 @@ export function DashboardView({ state }: { state: DashboardState }) {
         </div>
         <LeaderboardInteractive leaderboard={leaderboard} games={games} />
       </section>
+
+        </div>
+      </div>
 
       <div className="actions back-navigation-footer">
         <Link className="ghost-link" href="/">

@@ -7,16 +7,37 @@ const db = new Database(dbPath);
 db.pragma("foreign_keys = ON");
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    passwordHash TEXT NOT NULL,
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId INTEGER NOT NULL,
+    tokenHash TEXT NOT NULL UNIQUE,
+    expiresAt DATETIME NOT NULL,
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
   CREATE TABLE IF NOT EXISTS family_day_events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId INTEGER NOT NULL DEFAULT 1,
     title TEXT NOT NULL,
-    year INTEGER NOT NULL UNIQUE,
+    year INTEGER NOT NULL,
     tentativeDate DATETIME,
     location TEXT,
     startDate DATETIME,
     endDate DATETIME,
     createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE (userId, year)
   );
 
   CREATE TABLE IF NOT EXISTS teams (
@@ -79,15 +100,68 @@ db.exec(`
 `);
 
 // Safe idempotent migrations for existing databases
-const existingCols = db.prepare(`PRAGMA table_info(family_day_events)`).all().map(c => c.name);
+const fallbackPassword = "legacy:imported";
+db.prepare(`
+  INSERT OR IGNORE INTO users (id, name, email, passwordHash)
+  VALUES (1, 'Legacy Organizer', 'legacy@example.com', ?)
+`).run(fallbackPassword);
+
+let existingCols = db.prepare(`PRAGMA table_info(family_day_events)`).all().map(c => c.name);
+
+if (!existingCols.includes("userId")) {
+  db.exec(`ALTER TABLE family_day_events ADD COLUMN userId INTEGER NOT NULL DEFAULT 1;`);
+}
+
+const eventIndexes = db.prepare(`PRAGMA index_list(family_day_events)`).all();
+const hasGlobalYearUnique = eventIndexes.some(index => index.unique && String(index.name).includes("year") && !String(index.name).includes("userId"));
+const needsEventRebuild = hasGlobalYearUnique || !eventIndexes.some(index => index.unique && String(index.name).includes("userId"));
+
+if (needsEventRebuild) {
+  const tentativeDateSelect = existingCols.includes("tentativeDate") ? "tentativeDate" : "NULL";
+  const locationSelect = existingCols.includes("location") ? "location" : "NULL";
+  const startDateSelect = existingCols.includes("startDate") ? "startDate" : tentativeDateSelect;
+  const endDateSelect = existingCols.includes("endDate") ? "endDate" : "NULL";
+
+  db.exec(`
+    PRAGMA foreign_keys = OFF;
+    DROP TABLE IF EXISTS family_day_events_new;
+
+    CREATE TABLE family_day_events_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER NOT NULL DEFAULT 1,
+      title TEXT NOT NULL,
+      year INTEGER NOT NULL,
+      location TEXT,
+      startDate DATETIME,
+      endDate DATETIME,
+      createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE (userId, year)
+    );
+
+    INSERT OR IGNORE INTO family_day_events_new (id, userId, title, year, location, startDate, endDate, createdAt, updatedAt)
+    SELECT id, COALESCE(userId, 1), title, year, ${locationSelect}, ${startDateSelect}, ${endDateSelect}, createdAt, updatedAt
+    FROM family_day_events;
+
+    DROP TABLE family_day_events;
+    ALTER TABLE family_day_events_new RENAME TO family_day_events;
+
+    PRAGMA foreign_keys = ON;
+  `);
+
+  existingCols = db.prepare(`PRAGMA table_info(family_day_events)`).all().map(c => c.name);
+}
 
 if (!existingCols.includes("location")) {
   db.exec(`ALTER TABLE family_day_events ADD COLUMN location TEXT;`);
 }
 if (!existingCols.includes("startDate")) {
   db.exec(`ALTER TABLE family_day_events ADD COLUMN startDate DATETIME;`);
-  // Migrate existing tentativeDate values into startDate
-  db.exec(`UPDATE family_day_events SET startDate = tentativeDate WHERE tentativeDate IS NOT NULL AND startDate IS NULL;`);
+  // Migrate older tentativeDate values into startDate when that legacy column exists.
+  if (existingCols.includes("tentativeDate")) {
+    db.exec(`UPDATE family_day_events SET startDate = tentativeDate WHERE tentativeDate IS NOT NULL AND startDate IS NULL;`);
+  }
 }
 if (!existingCols.includes("endDate")) {
   db.exec(`ALTER TABLE family_day_events ADD COLUMN endDate DATETIME;`);

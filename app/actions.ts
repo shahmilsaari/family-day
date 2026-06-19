@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { requireEventOwner, requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 function parseDate(value: FormDataEntryValue | null) {
@@ -52,14 +53,17 @@ export async function saveEvent(formData: FormData) {
 
   if (!title || !year) return;
 
+  const user = await requireUser();
+
   if (eventId) {
+    await requireEventOwner(eventId);
     await prisma.familyDayEvent.update({
       where: { id: eventId },
       data: { title, year, startDate, endDate, location }
     });
   } else {
     await prisma.familyDayEvent.create({
-      data: { title, year, startDate, endDate, location }
+      data: { userId: user.id, title, year, startDate, endDate, location }
     });
   }
 
@@ -73,6 +77,8 @@ export async function createTeam(formData: FormData) {
   const members = parseMembers(formData.get("members"));
 
   if (!eventId || !name) return;
+
+  await requireEventOwner(eventId);
 
   const team = await prisma.team.create({
     data: {
@@ -97,6 +103,9 @@ export async function updateTeam(formData: FormData) {
 
   if (!teamId || !name) return;
 
+  const team = await prisma.team.findFirst({ where: { id: teamId, event: { userId: (await requireUser()).id } } });
+  if (!team) return;
+
   await prisma.team.update({
     where: { id: teamId },
     data: {
@@ -117,6 +126,9 @@ export async function deleteTeam(formData: FormData) {
 
   if (!teamId) return;
 
+  const team = await prisma.team.findFirst({ where: { id: teamId, event: { userId: (await requireUser()).id } } });
+  if (!team) return;
+
   await prisma.team.delete({
     where: { id: teamId }
   });
@@ -131,6 +143,8 @@ export async function createGame(formData: FormData) {
   const order = parseInteger(formData.get("order"), 0);
 
   if (!eventId || !name) return;
+
+  await requireEventOwner(eventId);
 
   await prisma.game.create({
     data: { eventId, name, order }
@@ -147,6 +161,9 @@ export async function updateGame(formData: FormData) {
 
   if (!gameId || !name) return;
 
+  const game = await prisma.game.findFirst({ where: { id: gameId, event: { userId: (await requireUser()).id } } });
+  if (!game) return;
+
   await prisma.game.update({
     where: { id: gameId },
     data: { name, order }
@@ -161,6 +178,9 @@ export async function deleteGame(formData: FormData) {
 
   if (!gameId) return;
 
+  const game = await prisma.game.findFirst({ where: { id: gameId, event: { userId: (await requireUser()).id } } });
+  if (!game) return;
+
   await prisma.game.delete({
     where: { id: gameId }
   });
@@ -171,6 +191,10 @@ export async function deleteGame(formData: FormData) {
 
 export async function updateGameOrder(orderedGameIds: number[]) {
   if (!orderedGameIds || orderedGameIds.length === 0) return;
+
+  const user = await requireUser();
+  const ownedCount = await prisma.game.count({ where: { id: { in: orderedGameIds }, event: { userId: user.id } } });
+  if (ownedCount !== orderedGameIds.length) return;
 
   await prisma.$transaction(
     orderedGameIds.map((gameId, index) =>
@@ -195,6 +219,8 @@ export async function createTentativeSchedule(formData: FormData) {
   const notes = String(formData.get("notes") ?? "").trim();
 
   if (!eventId || !time || !title) return;
+
+  await requireEventOwner(eventId);
 
   await prisma.tentativeSchedule.create({
     data: {
@@ -223,6 +249,9 @@ export async function updateTentativeSchedule(formData: FormData) {
 
   if (!scheduleId || !time || !title) return;
 
+  const schedule = await prisma.tentativeSchedule.findFirst({ where: { id: scheduleId, event: { userId: (await requireUser()).id } } });
+  if (!schedule) return;
+
   await prisma.tentativeSchedule.update({
     where: { id: scheduleId },
     data: {
@@ -244,6 +273,9 @@ export async function deleteTentativeSchedule(formData: FormData) {
 
   if (!scheduleId) return;
 
+  const schedule = await prisma.tentativeSchedule.findFirst({ where: { id: scheduleId, event: { userId: (await requireUser()).id } } });
+  if (!schedule) return;
+
   await prisma.tentativeSchedule.delete({
     where: { id: scheduleId }
   });
@@ -259,6 +291,11 @@ export async function saveScore(formData: FormData) {
   const placement = parseInteger(formData.get("placement"));
 
   if (!eventId || !teamId || !gameId || placement < 1) return;
+
+  await requireEventOwner(eventId);
+  const team = await prisma.team.findFirst({ where: { id: teamId, eventId } });
+  const game = await prisma.game.findFirst({ where: { id: gameId, eventId } });
+  if (!team || !game) return;
 
   await prisma.score.upsert({
     where: { teamId_gameId: { teamId, gameId } },
@@ -279,6 +316,11 @@ export async function saveGamePlacements(formData: FormData) {
     .filter((value) => Number.isFinite(value) && value > 0);
 
   if (!eventId || !gameId || orderedTeamIds.length === 0) return;
+
+  await requireEventOwner(eventId);
+  const game = await prisma.game.findFirst({ where: { id: gameId, eventId } });
+  const teamCount = await prisma.team.count({ where: { id: { in: orderedTeamIds }, eventId } });
+  if (!game || teamCount !== orderedTeamIds.length) return;
 
   await prisma.$transaction([
     prisma.score.deleteMany({ where: { gameId } }),
@@ -301,6 +343,9 @@ export async function clearGamePlacements(formData: FormData) {
 
   if (!gameId) return;
 
+  const game = await prisma.game.findFirst({ where: { id: gameId, event: { userId: (await requireUser()).id } } });
+  if (!game) return;
+
   await prisma.score.deleteMany({
     where: { gameId }
   });
@@ -314,6 +359,10 @@ export async function deleteScore(formData: FormData) {
   const gameId = parseInteger(formData.get("gameId"));
 
   if (!teamId || !gameId) return;
+
+  const user = await requireUser();
+  const score = await prisma.score.findFirst({ where: { teamId, gameId, event: { userId: user.id } } });
+  if (!score) return;
 
   await prisma.score.deleteMany({
     where: { teamId, gameId }

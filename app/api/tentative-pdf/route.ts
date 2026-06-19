@@ -34,8 +34,10 @@ function drawTableHeader(doc: PDFKit.PDFDocument, startY: number) {
     .stroke();
 }
 
-export async function GET() {
-  const state = await loadDashboard();
+export async function GET(request: Request) {
+  const eventIdParam = new URL(request.url).searchParams.get("eventId");
+  const eventId = eventIdParam ? Number.parseInt(eventIdParam, 10) : undefined;
+  const state = await loadDashboard(Number.isFinite(eventId) ? eventId : undefined);
 
   if (!state.event) {
     return new Response("No active event found.", { status: 404 });

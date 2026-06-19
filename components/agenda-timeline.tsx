@@ -187,6 +187,7 @@ export function AgendaTimeline({ eventId, eventStartDate, eventReady, dateRangeL
                 setEditingScheduleId(null);
               }}
               className="edit-form"
+              successMessage="Agenda item updated"
             >
               <input type="hidden" name="scheduleId" value={editingSchedule.id} />
               <div className="form-grid compact modal-form-grid">
@@ -240,6 +241,12 @@ export function AgendaTimeline({ eventId, eventStartDate, eventReady, dateRangeL
                 setEditingScheduleId(null);
               }}
               className="agenda-editor-remove"
+              onSubmit={(event) => {
+                if (!window.confirm("Remove this agenda slot? This cannot be undone.")) {
+                  event.preventDefault();
+                }
+              }}
+              successMessage="Agenda slot removed"
             >
               <input type="hidden" name="scheduleId" value={editingSchedule.id} />
               <button className="danger-btn" type="submit">
@@ -262,7 +269,7 @@ export function AgendaTimeline({ eventId, eventStartDate, eventReady, dateRangeL
         </div>
         <a
           className={`ghost-link${eventReady ? "" : " is-disabled"}`}
-          href={eventReady ? "/api/tentative-pdf" : "#"}
+          href={eventReady && eventId ? `/api/tentative-pdf?eventId=${eventId}` : "#"}
           aria-disabled={!eventReady}
           download={eventReady ? "tentative-timetable.pdf" : undefined}
           target={eventReady ? "_blank" : undefined}
@@ -314,7 +321,7 @@ export function AgendaTimeline({ eventId, eventStartDate, eventReady, dateRangeL
         </div>
       )}
 
-      <RefreshActionForm action={createTentativeSchedule} className="form-grid schedule-form agenda-add-form">
+      <RefreshActionForm action={createTentativeSchedule} className="form-grid schedule-form agenda-add-form" successMessage="Agenda slot added">
         <input type="hidden" name="eventId" value={eventId ?? ""} />
         <div className="form-grid compact">
           <div className="field">

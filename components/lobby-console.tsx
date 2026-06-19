@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { Game, Team } from "@prisma/client";
+import { notify } from "@/components/toast-host";
 import {
   createGame,
   createTeam,
@@ -75,38 +76,45 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
     setDraggedGameId(null);
     const orderedIds = orderedGames.map((g) => g.id);
     await updateGameOrder(orderedIds);
+    notify("Game order updated");
     router.refresh();
   };
 
   const handleTeamCreate = async (formData: FormData) => {
     await createTeam(formData);
+    notify("Team registered");
     router.refresh();
   };
 
   const handleTeamUpdate = async (formData: FormData) => {
     await updateTeam(formData);
+    notify("Team profile updated");
     setEditingTeamId(null);
     router.refresh();
   };
 
   const handleTeamDelete = async (formData: FormData) => {
     await deleteTeam(formData);
+    notify("Team removed", "warning");
     router.refresh();
   };
 
   const handleGameCreate = async (formData: FormData) => {
     await createGame(formData);
+    notify("Game created");
     router.refresh();
   };
 
   const handleGameUpdate = async (formData: FormData) => {
     await updateGame(formData);
+    notify("Game updated");
     setEditingGameId(null);
     router.refresh();
   };
 
   const handleGameDelete = async (formData: FormData) => {
     await deleteGame(formData);
+    notify("Game removed", "warning");
     router.refresh();
   };
 
@@ -196,7 +204,15 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
                     ) : null}
                   </div>
 
-                  <form action={handleTeamDelete} className="remove-form card-remove-trigger">
+                  <form
+                    action={handleTeamDelete}
+                    className="remove-form card-remove-trigger"
+                    onSubmit={(event) => {
+                      if (!window.confirm(`Remove team ${team.name}? This will also remove related scores.`)) {
+                        event.preventDefault();
+                      }
+                    }}
+                  >
                     <input type="hidden" name="teamId" value={team.id} />
                     <button className="danger-btn remove-btn-small" type="submit">
                       Remove Team
@@ -263,7 +279,15 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
                       </button>
                     </div>
 
-                    <form action={handleGameDelete} className="remove-form card-remove-trigger">
+                    <form
+                      action={handleGameDelete}
+                      className="remove-form card-remove-trigger"
+                      onSubmit={(event) => {
+                        if (!window.confirm(`Remove game ${game.name}? This will also remove its scores.`)) {
+                          event.preventDefault();
+                        }
+                      }}
+                    >
                       <input type="hidden" name="gameId" value={game.id} />
                       <button className="danger-btn remove-btn-small" type="submit">
                         Remove Game

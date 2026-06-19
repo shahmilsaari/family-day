@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { SiteHeader } from "@/components/site-header";
+import { ToastHost } from "@/components/toast-host";
+import { getCurrentUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -15,27 +18,28 @@ export const metadata: Metadata = {
   description: "Family day planning and scoring dashboard"
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: Readonly<{
   children: ReactNode;
 }>) {
+  const user = await getCurrentUser();
+  const events = user
+    ? await prisma.familyDayEvent.findMany({
+        where: { userId: user.id },
+        orderBy: [{ year: "desc" }, { createdAt: "desc" }],
+        select: { id: true, title: true, year: true }
+      })
+    : [];
+
   return (
     <html lang="en">
       <body className={plusJakartaSans.className}>
         <div className="page-shell">
-          <header className="site-header">
-            <div>
-              <p className="eyebrow">Family Day Operations</p>
-              <h1>Team setup, event details, and live scoring</h1>
-            </div>
-            <nav className="site-nav">
-              <Link href="/">Overview</Link>
-              <Link href="/dashboard">Dashboard</Link>
-            </nav>
-          </header>
+          <SiteHeader user={user ? { name: user.name, email: user.email } : null} events={events} />
           {children}
         </div>
+        <ToastHost />
       </body>
     </html>
   );

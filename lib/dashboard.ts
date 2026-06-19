@@ -1,3 +1,4 @@
+import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export type DashboardEvent = Awaited<ReturnType<typeof loadDashboard>>["event"];
@@ -13,8 +14,10 @@ function getTimeSortValue(value: string) {
   return hours * 60 + minutes;
 }
 
-export async function loadDashboard() {
+export async function loadDashboard(eventId?: number) {
+  const user = await requireUser();
   const event = await prisma.familyDayEvent.findFirst({
+    where: eventId ? { id: eventId, userId: user.id } : { userId: user.id },
     orderBy: [{ year: "desc" }, { createdAt: "desc" }],
     include: {
       teams: {
