@@ -60,6 +60,26 @@ function UsersIcon() {
   );
 }
 
+function TrophyIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+      <path d="M4 22h16" />
+      <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34" />
+      <path d="M12 2a6 6 0 0 1 6 6v3.5a6 6 0 0 1-6 6 6 6 0 0 1-6-6V8a6 6 0 0 1 6-6Z" />
+    </svg>
+  );
+}
+
+function ActivityIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+    </svg>
+  );
+}
+
 export function DashboardView({ state }: { state: DashboardState }) {
   const { event, leaderboard, games, teams, timetable, totals } = state;
   const featuredTeam = leaderboard[0];
@@ -73,6 +93,8 @@ export function DashboardView({ state }: { state: DashboardState }) {
   const dateRangeLabel = startLabel && endLabel
     ? `${startLabel} → ${endLabel}`
     : startLabel ?? endLabel ?? "Date not scheduled";
+  const nextAgendaItem = timetable[0] ?? null;
+  const eventStatus = event ? "Live workspace" : "Setup needed";
 
   return (
     <main className="dashboard-grid dashboard-workspace-shell slide-up-animation">
@@ -114,62 +136,148 @@ export function DashboardView({ state }: { state: DashboardState }) {
         </div>
       </section>
 
-      {/* Timetable and Config details */}
-      <section className="section-grid main-setup">
-        {/* Left: Event form */}
-        <div className="glass-panel panel-pad stack config-event-panel">
+      <section className="dashboard-overview-grid">
+        <article className="glass-panel panel-pad overview-card overview-card-highlight">
+          <div className="overview-card-icon"><CalendarIcon /></div>
           <div>
-            <h3>Event Settings</h3>
-            <p className="muted">Configure the event title, venue, year, and date range.</p>
+            <span className="overview-card-label">Workspace Status</span>
+            <strong className="overview-card-value">{eventStatus}</strong>
+            <p className="muted">{event ? `${event.year} event plan is active.` : "Create the event settings to unlock all controls."}</p>
           </div>
-          
-          <RefreshActionForm action={saveEvent} className="form-grid interactive-form">
-            <input type="hidden" name="eventId" value={event?.id ?? ""} />
+        </article>
 
-            <div className="field">
-              <label htmlFor="title">Event Title</label>
-              <input id="title" name="title" defaultValue={event?.title ?? ""} placeholder="Family Day 2026" />
-            </div>
+        <article className="glass-panel panel-pad overview-card">
+          <div className="overview-card-icon"><ActivityIcon /></div>
+          <div>
+            <span className="overview-card-label">Agenda Flow</span>
+            <strong className="overview-card-value">{timetable.length} slot{timetable.length === 1 ? "" : "s"}</strong>
+            <p className="muted">{nextAgendaItem ? `Next: ${nextAgendaItem.title}` : "No agenda item planned yet."}</p>
+          </div>
+        </article>
 
-            <div className="field">
-              <label htmlFor="location">Venue / Location</label>
-              <input id="location" name="location" defaultValue={event?.location ?? ""} placeholder="e.g. Nilai Springs Resort" />
-            </div>
+        <article className="glass-panel panel-pad overview-card">
+          <div className="overview-card-icon"><UsersIcon /></div>
+          <div>
+            <span className="overview-card-label">Competition Setup</span>
+            <strong className="overview-card-value">{totals.teams} teams · {totals.games} games</strong>
+            <p className="muted">{totals.scores} placement entries recorded so far.</p>
+          </div>
+        </article>
 
-            <div className="event-date-range-row">
-              <div className="field event-year-field">
-                <label htmlFor="year">Year</label>
-                <input id="year" name="year" type="number" defaultValue={event?.year ?? new Date().getFullYear()} />
+        <article className="glass-panel panel-pad overview-card overview-card-trophy">
+          <div className="overview-card-icon"><TrophyIcon /></div>
+          <div>
+            <span className="overview-card-label">Current Leader</span>
+            <strong className="overview-card-value">{featuredTeam ? featuredTeam.name : "Waiting for results"}</strong>
+            <p className="muted">{featuredTeam ? `${featuredTeam.completedGames} games completed.` : "Live standings will appear after scoring."}</p>
+          </div>
+        </article>
+      </section>
+
+      <section className="section-grid main-setup dashboard-command-grid">
+        <div className="dashboard-command-stack">
+          <div className="glass-panel panel-pad stack config-event-panel command-card">
+            <div className="dashboard-section-heading">
+              <div>
+                <p className="eyebrow">Command Center</p>
+                <h3>Event Settings</h3>
               </div>
-              <div className="field event-date-field">
-                <label htmlFor="startDate">Start Date</label>
-                <input
-                  id="startDate"
-                  name="startDate"
-                  type="date"
-                  defaultValue={event?.startDate ? event.startDate.toISOString().slice(0, 10) : ""}
-                />
+              <span className="dashboard-section-badge">Core setup</span>
+            </div>
+            <p className="muted">Configure the event title, venue, year, and date range.</p>
+
+            <RefreshActionForm action={saveEvent} className="form-grid interactive-form">
+              <input type="hidden" name="eventId" value={event?.id ?? ""} />
+
+              <div className="field">
+                <label htmlFor="title">Event Title</label>
+                <input id="title" name="title" defaultValue={event?.title ?? ""} placeholder="Family Day 2026" />
               </div>
-              <div className="field event-date-field">
-                <label htmlFor="endDate">End Date</label>
-                <input
-                  id="endDate"
-                  name="endDate"
-                  type="date"
-                  defaultValue={event?.endDate ? event.endDate.toISOString().slice(0, 10) : ""}
-                />
+
+              <div className="field">
+                <label htmlFor="location">Venue / Location</label>
+                <input id="location" name="location" defaultValue={event?.location ?? ""} placeholder="e.g. Nilai Springs Resort" />
+              </div>
+
+              <div className="event-date-range-row">
+                <div className="field event-year-field">
+                  <label htmlFor="year">Year</label>
+                  <input id="year" name="year" type="number" defaultValue={event?.year ?? new Date().getFullYear()} />
+                </div>
+                <div className="field event-date-field">
+                  <label htmlFor="startDate">Start Date</label>
+                  <input
+                    id="startDate"
+                    name="startDate"
+                    type="date"
+                    defaultValue={event?.startDate ? event.startDate.toISOString().slice(0, 10) : ""}
+                  />
+                </div>
+                <div className="field event-date-field">
+                  <label htmlFor="endDate">End Date</label>
+                  <input
+                    id="endDate"
+                    name="endDate"
+                    type="date"
+                    defaultValue={event?.endDate ? event.endDate.toISOString().slice(0, 10) : ""}
+                  />
+                </div>
+              </div>
+
+              <div className="actions form-save-actions">
+                <button className="primary-btn pulse-glow-btn" type="submit">
+                  Save Event Configuration
+                </button>
+              </div>
+            </RefreshActionForm>
+          </div>
+
+          <div className="glass-panel panel-pad stack command-card dashboard-snapshot-card">
+            <div className="dashboard-section-heading">
+              <div>
+                <p className="eyebrow">Snapshot</p>
+                <h3>Operational Notes</h3>
+              </div>
+              <span className="dashboard-section-badge">At a glance</span>
+            </div>
+
+            <div className="snapshot-list">
+              <div className="snapshot-row">
+                <span>Date range</span>
+                <strong>{dateRangeLabel}</strong>
+              </div>
+              <div className="snapshot-row">
+                <span>Venue</span>
+                <strong>{event?.location || "Not set"}</strong>
+              </div>
+              <div className="snapshot-row">
+                <span>Top team</span>
+                <strong>{featuredTeam?.name || "No standings yet"}</strong>
+              </div>
+              <div className="snapshot-row">
+                <span>Agenda readiness</span>
+                <strong>{timetable.length ? "Scheduled" : "Pending"}</strong>
               </div>
             </div>
 
-            <div className="actions form-save-actions">
-              <button className="primary-btn pulse-glow-btn" type="submit">
-                Save Event Configuration
-              </button>
+            <div className="dashboard-quick-links">
+              <a
+                className={`ghost-link${event ? "" : " is-disabled"}`}
+                href={event ? "/api/tentative-pdf" : "#"}
+                aria-disabled={!event}
+                download={event ? "tentative-timetable.pdf" : undefined}
+                target={event ? "_blank" : undefined}
+                rel={event ? "noreferrer" : undefined}
+              >
+                Export timetable PDF
+              </a>
+              <Link className="ghost-link" href="/">
+                Back to overview
+              </Link>
             </div>
-          </RefreshActionForm>
+          </div>
         </div>
 
-        {/* Right: Timetable Timeline */}
         <AgendaTimeline
           eventId={event?.id ?? null}
           eventStartDate={event?.startDate ? event.startDate.toISOString().slice(0, 10) : ""}
@@ -179,15 +287,35 @@ export function DashboardView({ state }: { state: DashboardState }) {
         />
       </section>
 
-      <LobbyConsole eventId={event?.id ?? null} teams={teams} games={games} />
+      <section className="dashboard-stage">
+        <div className="dashboard-stage-head">
+          <div>
+            <p className="eyebrow">Team Builder</p>
+            <h3>Registration & Game Catalog</h3>
+          </div>
+          <span className="dashboard-stage-note">Keep this area for teams and games setup.</span>
+        </div>
+        <LobbyConsole eventId={event?.id ?? null} teams={teams} games={games} />
+      </section>
 
-      <PlacementConsole eventId={event?.id ?? null} games={games} teams={teams} />
+      <section className="dashboard-stage">
+        <div className="dashboard-stage-head">
+          <div>
+            <p className="eyebrow">Arena</p>
+            <h3>Game Placement Arena</h3>
+          </div>
+          <span className="dashboard-stage-note">Live placement area remains front and center.</span>
+        </div>
+        <PlacementConsole eventId={event?.id ?? null} games={games} teams={teams} />
+      </section>
 
-      {/* Leaderboard Section (Client Interactive) */}
-      <section className="glass-panel panel-pad stack leaderboard-panel-section-wrap">
-        <div>
-          <h3>Live Tournament Standings</h3>
-          <p className="muted">Standings recalculate automatically based on completed games and placement averages.</p>
+      <section className="glass-panel panel-pad stack leaderboard-panel-section-wrap dashboard-stage">
+        <div className="dashboard-stage-head">
+          <div>
+            <p className="eyebrow">Standings</p>
+            <h3>Live Tournament Standings</h3>
+          </div>
+          <span className="dashboard-stage-note">Auto-recalculates from saved placements.</span>
         </div>
         <LeaderboardInteractive leaderboard={leaderboard} games={games} />
       </section>

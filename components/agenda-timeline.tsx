@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type { TentativeSchedule } from "@prisma/client";
 import {
   createTentativeSchedule,
@@ -127,8 +128,13 @@ function formatTimeInputValue(value: string) {
 
 export function AgendaTimeline({ eventId, eventStartDate, eventReady, dateRangeLabel, timetable }: AgendaTimelineProps) {
   const [editingScheduleId, setEditingScheduleId] = useState<number | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   const editingSchedule = timetable.find((item) => item.id === editingScheduleId) ?? null;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!editingScheduleId) return;
@@ -154,6 +160,97 @@ export function AgendaTimeline({ eventId, eventStartDate, eventReady, dateRangeL
       document.body.style.overflow = "";
     };
   }, [editingSchedule]);
+
+  const editScheduleModal = mounted && editingSchedule
+    ? createPortal(
+        <div aria-labelledby={`edit-schedule-title-${editingSchedule.id}`} aria-modal="true" className="modal open agenda-modal" role="dialog">
+          <button
+            className="modal-backdrop"
+            onClick={() => setEditingScheduleId(null)}
+            type="button"
+            aria-label="Close edit agenda item"
+          />
+          <div className="modal-panel agenda-modal-panel animate-modal-entrance">
+            <div className="modal-header">
+              <div>
+                <p className="eyebrow">Edit Agenda Item</p>
+                <h3 id={`edit-schedule-title-${editingSchedule.id}`}>{editingSchedule.title}</h3>
+              </div>
+              <button className="close-btn" onClick={() => setEditingScheduleId(null)} type="button" aria-label="Close">
+                ×
+              </button>
+            </div>
+
+            <RefreshActionForm
+              action={async (formData) => {
+                await updateTentativeSchedule(formData);
+                setEditingScheduleId(null);
+              }}
+              className="edit-form"
+            >
+              <input type="hidden" name="scheduleId" value={editingSchedule.id} />
+              <div className="form-grid compact modal-form-grid">
+                <div className="field">
+                  <label htmlFor={`edit-schedule-date-${editingSchedule.id}`}>Date</label>
+                  <input
+                    id={`edit-schedule-date-${editingSchedule.id}`}
+                    name="scheduleDate"
+                    type="date"
+                    defaultValue={editingSchedule.scheduleDate ? editingSchedule.scheduleDate.toISOString().slice(0, 10) : ""}
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor={`edit-schedule-time-${editingSchedule.id}`}>Time</label>
+                  <input
+                    id={`edit-schedule-time-${editingSchedule.id}`}
+                    name="time"
+                    type="time"
+                    defaultValue={formatTimeInputValue(editingSchedule.time)}
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor={`edit-schedule-name-${editingSchedule.id}`}>Activity</label>
+                  <input id={`edit-schedule-name-${editingSchedule.id}`} name="title" defaultValue={editingSchedule.title} />
+                </div>
+              </div>
+              <div className="form-grid compact modal-form-grid">
+                <div className="field">
+                  <label htmlFor={`edit-schedule-location-${editingSchedule.id}`}>Location</label>
+                  <input id={`edit-schedule-location-${editingSchedule.id}`} name="location" defaultValue={editingSchedule.location ?? ""} />
+                </div>
+                <div className="field">
+                  <label htmlFor={`edit-schedule-pic-${editingSchedule.id}`}>PIC</label>
+                  <input id={`edit-schedule-pic-${editingSchedule.id}`} name="pic" defaultValue={editingSchedule.pic ?? ""} />
+                </div>
+                <div className="field wide-field">
+                  <label htmlFor={`edit-schedule-notes-${editingSchedule.id}`}>Notes</label>
+                  <textarea id={`edit-schedule-notes-${editingSchedule.id}`} name="notes" defaultValue={editingSchedule.notes ?? ""} />
+                </div>
+              </div>
+              <div className="actions modal-save-btn">
+                <button className="primary-btn" type="submit">
+                  Save Changes
+                </button>
+              </div>
+            </RefreshActionForm>
+
+            <RefreshActionForm
+              action={async (formData) => {
+                await deleteTentativeSchedule(formData);
+                setEditingScheduleId(null);
+              }}
+              className="agenda-editor-remove"
+            >
+              <input type="hidden" name="scheduleId" value={editingSchedule.id} />
+              <button className="danger-btn" type="submit">
+                Remove Slot
+              </button>
+            </RefreshActionForm>
+          </div>
+        </div>,
+        document.body
+      )
+    : null;
 
   return (
     <div className="glass-panel panel-pad stack timetable-panel timeline-vertical-panel">
@@ -254,93 +351,7 @@ export function AgendaTimeline({ eventId, eventStartDate, eventReady, dateRangeL
         </div>
       </RefreshActionForm>
 
-      {editingSchedule ? (
-        <div aria-labelledby={`edit-schedule-title-${editingSchedule.id}`} aria-modal="true" className="modal open" role="dialog">
-          <button
-            className="modal-backdrop"
-            onClick={() => setEditingScheduleId(null)}
-            type="button"
-            aria-label="Close edit agenda item"
-          />
-          <div className="modal-panel animate-modal-entrance">
-            <div className="modal-header">
-              <div>
-                <p className="eyebrow">Edit Agenda Item</p>
-                <h3 id={`edit-schedule-title-${editingSchedule.id}`}>{editingSchedule.title}</h3>
-              </div>
-              <button className="close-btn" onClick={() => setEditingScheduleId(null)} type="button" aria-label="Close">
-                ×
-              </button>
-            </div>
-
-            <RefreshActionForm
-              action={async (formData) => {
-                await updateTentativeSchedule(formData);
-                setEditingScheduleId(null);
-              }}
-              className="edit-form"
-            >
-              <input type="hidden" name="scheduleId" value={editingSchedule.id} />
-              <div className="form-grid compact modal-form-grid">
-                <div className="field">
-                  <label htmlFor={`edit-schedule-date-${editingSchedule.id}`}>Date</label>
-                  <input
-                    id={`edit-schedule-date-${editingSchedule.id}`}
-                    name="scheduleDate"
-                    type="date"
-                    defaultValue={editingSchedule.scheduleDate ? editingSchedule.scheduleDate.toISOString().slice(0, 10) : ""}
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor={`edit-schedule-time-${editingSchedule.id}`}>Time</label>
-                  <input
-                    id={`edit-schedule-time-${editingSchedule.id}`}
-                    name="time"
-                    type="time"
-                    defaultValue={formatTimeInputValue(editingSchedule.time)}
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor={`edit-schedule-name-${editingSchedule.id}`}>Activity</label>
-                  <input id={`edit-schedule-name-${editingSchedule.id}`} name="title" defaultValue={editingSchedule.title} />
-                </div>
-              </div>
-              <div className="form-grid compact modal-form-grid">
-                <div className="field">
-                  <label htmlFor={`edit-schedule-location-${editingSchedule.id}`}>Location</label>
-                  <input id={`edit-schedule-location-${editingSchedule.id}`} name="location" defaultValue={editingSchedule.location ?? ""} />
-                </div>
-                <div className="field">
-                  <label htmlFor={`edit-schedule-pic-${editingSchedule.id}`}>PIC</label>
-                  <input id={`edit-schedule-pic-${editingSchedule.id}`} name="pic" defaultValue={editingSchedule.pic ?? ""} />
-                </div>
-                <div className="field wide-field">
-                  <label htmlFor={`edit-schedule-notes-${editingSchedule.id}`}>Notes</label>
-                  <textarea id={`edit-schedule-notes-${editingSchedule.id}`} name="notes" defaultValue={editingSchedule.notes ?? ""} />
-                </div>
-              </div>
-              <div className="actions modal-save-btn">
-                <button className="primary-btn" type="submit">
-                  Save Changes
-                </button>
-              </div>
-            </RefreshActionForm>
-
-            <RefreshActionForm
-              action={async (formData) => {
-                await deleteTentativeSchedule(formData);
-                setEditingScheduleId(null);
-              }}
-              className="agenda-editor-remove"
-            >
-              <input type="hidden" name="scheduleId" value={editingSchedule.id} />
-              <button className="danger-btn" type="submit">
-                Remove Slot
-              </button>
-            </RefreshActionForm>
-          </div>
-        </div>
-      ) : null}
+      {editScheduleModal}
     </div>
   );
 }
