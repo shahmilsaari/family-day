@@ -51,8 +51,10 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS tentative_schedules (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     eventId INTEGER NOT NULL,
+    scheduleDate DATETIME,
     time TEXT NOT NULL,
     title TEXT NOT NULL,
+    pic TEXT,
     location TEXT,
     notes TEXT,
     "order" INTEGER NOT NULL DEFAULT 0,
@@ -89,6 +91,15 @@ if (!existingCols.includes("startDate")) {
 }
 if (!existingCols.includes("endDate")) {
   db.exec(`ALTER TABLE family_day_events ADD COLUMN endDate DATETIME;`);
+}
+
+const existingScheduleCols = db.prepare(`PRAGMA table_info(tentative_schedules)`).all().map(c => c.name);
+
+if (!existingScheduleCols.includes("scheduleDate")) {
+  db.exec(`ALTER TABLE tentative_schedules ADD COLUMN scheduleDate DATETIME;`);
+}
+if (!existingScheduleCols.includes("pic")) {
+  db.exec(`ALTER TABLE tentative_schedules ADD COLUMN pic TEXT;`);
 }
 
 db.close();

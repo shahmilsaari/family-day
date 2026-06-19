@@ -2,6 +2,17 @@ import { prisma } from "@/lib/prisma";
 
 export type DashboardEvent = Awaited<ReturnType<typeof loadDashboard>>["event"];
 
+function getTimeSortValue(value: string) {
+  const normalized = value.trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!normalized) return Number.MAX_SAFE_INTEGER;
+
+  const hours = Number.parseInt(normalized[1], 10);
+  const minutes = Number.parseInt(normalized[2], 10);
+
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return Number.MAX_SAFE_INTEGER;
+  return hours * 60 + minutes;
+}
+
 export async function loadDashboard() {
   const event = await prisma.familyDayEvent.findFirst({
     orderBy: [{ year: "desc" }, { createdAt: "desc" }],
@@ -15,7 +26,7 @@ export async function loadDashboard() {
         include: { scores: true }
       },
       timetable: {
-        orderBy: [{ order: "asc" }, { time: "asc" }]
+        orderBy: [{ createdAt: "asc" }]
       }
     }
   });
@@ -34,6 +45,17 @@ export async function loadDashboard() {
 
   const teams = event.teams;
   const games = event.games;
+  const timetable = [...event.timetable].sort((a, b) => {
+    const leftDate = a.scheduleDate ? new Date(a.scheduleDate).getTime() : Number.MAX_SAFE_INTEGER;
+    const rightDate = b.scheduleDate ? new Date(b.scheduleDate).getTime() : Number.MAX_SAFE_INTEGER;
+
+    return (
+      leftDate - rightDate ||
+      getTimeSortValue(a.time) - getTimeSortValue(b.time) ||
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() ||
+      a.title.localeCompare(b.title)
+    );
+  });
   const scoreMap = new Map<string, number>();
 
   for (const game of games) {
@@ -72,7 +94,7 @@ export async function loadDashboard() {
     leaderboard,
     games,
     teams,
-    timetable: event.timetable,
+    timetable,
     scoreCells: leaderboard.flatMap((team) => team.perGame),
     totals: {
       teams: teams.length,

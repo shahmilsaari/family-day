@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { loadDashboard } from "@/lib/dashboard";
+import { formatScheduleDate, formatScheduleTime, groupTimetableByDay } from "@/lib/timetable";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +59,15 @@ function LocationPinIcon() {
   );
 }
 
+function ClockIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  );
+}
+
 export default async function HomePage() {
   const state = await loadDashboard();
 
@@ -69,6 +79,10 @@ export default async function HomePage() {
   const dateRangeLabel = startLabel && endLabel
     ? `${startLabel} → ${endLabel}`
     : startLabel ?? endLabel ?? "Not scheduled";
+  const groupedTimetable = groupTimetableByDay(state.timetable);
+  const totalAgendaSlots = state.timetable.length;
+  const scheduledDays = groupedTimetable.length;
+  const nextAgendaItem = state.timetable[0] ?? null;
 
   return (
     <main className="hero-grid main-landing-shell slide-up-animation">
@@ -138,7 +152,7 @@ export default async function HomePage() {
               <span className="stat-sub">{state.event.year} Edition</span>
             </div>
 
-            <div className="workspace-stat-grid-mini">
+            <div className="workspace-stat-grid-mini overview-stat-grid">
               <div className="stat-mini-pill">
                 <div className="pill-icon-wrap"><CalendarIcon /></div>
                 <div>
@@ -174,6 +188,29 @@ export default async function HomePage() {
               </div>
             </div>
 
+            <div className="overview-summary-table">
+              <div className="overview-summary-row">
+                <span>Agenda Slots</span>
+                <strong>{totalAgendaSlots}</strong>
+              </div>
+              <div className="overview-summary-row">
+                <span>Scheduled Days</span>
+                <strong>{scheduledDays}</strong>
+              </div>
+              <div className="overview-summary-row">
+                <span>Next Agenda</span>
+                <strong>{nextAgendaItem ? nextAgendaItem.title : "Not added yet"}</strong>
+              </div>
+              <div className="overview-summary-row">
+                <span>Next Slot Time</span>
+                <strong>
+                  {nextAgendaItem
+                    ? `${formatScheduleDate(nextAgendaItem.scheduleDate)} · ${formatScheduleTime(nextAgendaItem.time)}`
+                    : "No schedule yet"}
+                </strong>
+              </div>
+            </div>
+
             <div className="overview-leaderboard-banner">
               <div className="banner-context">
                 <span>Top Leading Team</span>
@@ -192,6 +229,99 @@ export default async function HomePage() {
             <Link className="secondary-btn" href="/dashboard">
               Create Event Now
             </Link>
+          </div>
+        )}
+      </section>
+
+      <section className="glass-panel panel-pad stack landing-timetable-panel">
+        <div className="landing-timetable-head">
+          <div>
+            <p className="eyebrow">Auto Timetable</p>
+            <h3>Family Day Run Sheet</h3>
+          </div>
+          <div className="landing-timetable-controls">
+            <div className="timetable-topline-metrics">
+              <span>{totalAgendaSlots} slots</span>
+              <span>{scheduledDays} day{scheduledDays === 1 ? "" : "s"}</span>
+            </div>
+            <a
+              className={`ghost-link${state.event ? "" : " is-disabled"}`}
+              href={state.event ? "/api/tentative-pdf" : "#"}
+              aria-disabled={!state.event}
+              download={state.event ? "tentative-timetable.pdf" : undefined}
+              target={state.event ? "_blank" : undefined}
+              rel={state.event ? "noreferrer" : undefined}
+            >
+              Export PDF
+            </a>
+            <Link className="ghost-link" href="/dashboard">
+              Manage Agenda
+            </Link>
+          </div>
+        </div>
+
+        {groupedTimetable.length ? (
+          <div className="root-timetable-groups">
+            {groupedTimetable.map((group, groupIndex) => (
+              <section key={group.key} className="root-timetable-day">
+                <div className="root-timetable-day-head">
+                  <div className="day-head-main">
+                    <div className="day-head-leading">
+                      <div className="day-head-icon">
+                        <CalendarIcon />
+                      </div>
+                      <div className="day-head-copy">
+                        <span className="day-head-kicker">Schedule Day</span>
+                        <strong>{group.label}</strong>
+                      </div>
+                    </div>
+                    <div className="day-head-trailing">
+                      <span>{group.items.length} slot{group.items.length > 1 ? "s" : ""}</span>
+                      <b className="day-count-badge">Day {groupIndex + 1}</b>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="root-timetable-table-wrap">
+                  <table className="root-timetable-table">
+                    <colgroup>
+                      <col className="col-slot" />
+                      <col className="col-time" />
+                      <col className="col-activity" />
+                    </colgroup>
+                    <thead>
+                      <tr>
+                        <th>Slot</th>
+                        <th>Time</th>
+                        <th>Activity</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {group.items.map((item, itemIndex) => (
+                        <tr key={item.id}>
+                          <td className="slot-cell">{String(itemIndex + 1).padStart(2, "0")}</td>
+                          <td className="time-cell">
+                            <span><ClockIcon /></span>
+                            {formatScheduleTime(item.time)}
+                          </td>
+                          <td className="activity-cell">
+                            <strong>{item.title}</strong>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            ))}
+          </div>
+        ) : (
+          <div className="landing-empty-state">
+            <div className="empty-graphic">🗓️</div>
+            <strong>No timetable generated yet</strong>
+            <p className="muted">
+              Add dated agenda slots in the dashboard and the homepage timetable will generate automatically.
+            </p>
           </div>
         )}
       </section>

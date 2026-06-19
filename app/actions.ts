@@ -9,6 +9,25 @@ function parseDate(value: FormDataEntryValue | null) {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
+function parseTime(value: FormDataEntryValue | null) {
+  if (typeof value !== "string") return "";
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+
+  const normalized = trimmed.match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/i);
+  if (!normalized) return trimmed;
+
+  let hours = Number.parseInt(normalized[1], 10);
+  const minutes = Number.parseInt(normalized[2], 10);
+  const meridiem = normalized[3]?.toUpperCase();
+
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return trimmed;
+  if (meridiem === "AM" && hours === 12) hours = 0;
+  if (meridiem === "PM" && hours < 12) hours += 12;
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
 function parseInteger(value: FormDataEntryValue | null, fallback = 0) {
   if (typeof value !== "string") return fallback;
   const parsed = Number.parseInt(value, 10);
@@ -168,22 +187,24 @@ export async function updateGameOrder(orderedGameIds: number[]) {
 
 export async function createTentativeSchedule(formData: FormData) {
   const eventId = parseInteger(formData.get("eventId"));
-  const time = String(formData.get("time") ?? "").trim();
+  const scheduleDate = parseDate(formData.get("scheduleDate"));
+  const time = parseTime(formData.get("time"));
   const title = String(formData.get("title") ?? "").trim();
+  const pic = String(formData.get("pic") ?? "").trim();
   const location = String(formData.get("location") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
-  const order = parseInteger(formData.get("order"), 0);
 
   if (!eventId || !time || !title) return;
 
   await prisma.tentativeSchedule.create({
     data: {
       eventId,
+      scheduleDate,
       time,
       title,
+      pic: pic || null,
       location: location || null,
-      notes: notes || null,
-      order
+      notes: notes || null
     }
   });
 
@@ -193,22 +214,24 @@ export async function createTentativeSchedule(formData: FormData) {
 
 export async function updateTentativeSchedule(formData: FormData) {
   const scheduleId = parseInteger(formData.get("scheduleId"));
-  const time = String(formData.get("time") ?? "").trim();
+  const scheduleDate = parseDate(formData.get("scheduleDate"));
+  const time = parseTime(formData.get("time"));
   const title = String(formData.get("title") ?? "").trim();
+  const pic = String(formData.get("pic") ?? "").trim();
   const location = String(formData.get("location") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
-  const order = parseInteger(formData.get("order"), 0);
 
   if (!scheduleId || !time || !title) return;
 
   await prisma.tentativeSchedule.update({
     where: { id: scheduleId },
     data: {
+      scheduleDate,
       time,
       title,
+      pic: pic || null,
       location: location || null,
-      notes: notes || null,
-      order
+      notes: notes || null
     }
   });
 

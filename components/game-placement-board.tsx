@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { clearGamePlacements, saveGamePlacements } from "@/app/actions";
 
 type PlacementTeam = {
@@ -57,8 +58,19 @@ export function GamePlacementBoard({
   gameName,
   teams
 }: GamePlacementBoardProps) {
+  const router = useRouter();
   const [orderedTeams, setOrderedTeams] = useState(teams);
   const [draggedTeamId, setDraggedTeamId] = useState<number | null>(null);
+
+  const handleSavePlacements = async (formData: FormData) => {
+    await saveGamePlacements(formData);
+    router.refresh();
+  };
+
+  const handleClearPlacements = async (formData: FormData) => {
+    await clearGamePlacements(formData);
+    router.refresh();
+  };
 
   const moveTeam = (targetTeamId: number) => {
     if (draggedTeamId === null || draggedTeamId === targetTeamId) return;
@@ -132,7 +144,7 @@ export function GamePlacementBoard({
       )}
 
       <div className="placement-actions scoring-actions-bar">
-        <form action={saveGamePlacements}>
+        <form action={handleSavePlacements}>
           <input type="hidden" name="eventId" value={eventId} />
           <input type="hidden" name="gameId" value={gameId} />
           <input type="hidden" name="orderedTeamIds" value={orderedTeams.map((team) => team.id).join(",")} />
@@ -142,7 +154,7 @@ export function GamePlacementBoard({
           </button>
         </form>
         
-        <form action={clearGamePlacements}>
+        <form action={handleClearPlacements}>
           <input type="hidden" name="gameId" value={gameId} />
           <button className="danger-btn clear-deck-btn" type="submit">
             <TrashIcon />

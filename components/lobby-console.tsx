@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { Game, Team } from "@prisma/client";
 import {
   createGame,
@@ -35,11 +36,17 @@ function DragHandleIcon() {
 }
 
 export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
+  const router = useRouter();
   const [lobbyTab, setLobbyTab] = useState<"teams" | "games">("teams");
   const eventReady = eventId !== null;
 
   const [orderedGames, setOrderedGames] = useState(games);
   const [draggedGameId, setDraggedGameId] = useState<number | null>(null);
+  const [editingTeamId, setEditingTeamId] = useState<number | null>(null);
+  const [editingGameId, setEditingGameId] = useState<number | null>(null);
+
+  const editingTeam = teams.find((team) => team.id === editingTeamId) ?? null;
+  const editingGame = orderedGames.find((game) => game.id === editingGameId) ?? null;
 
   useEffect(() => {
     if (draggedGameId === null) {
@@ -68,6 +75,39 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
     setDraggedGameId(null);
     const orderedIds = orderedGames.map((g) => g.id);
     await updateGameOrder(orderedIds);
+    router.refresh();
+  };
+
+  const handleTeamCreate = async (formData: FormData) => {
+    await createTeam(formData);
+    router.refresh();
+  };
+
+  const handleTeamUpdate = async (formData: FormData) => {
+    await updateTeam(formData);
+    setEditingTeamId(null);
+    router.refresh();
+  };
+
+  const handleTeamDelete = async (formData: FormData) => {
+    await deleteTeam(formData);
+    router.refresh();
+  };
+
+  const handleGameCreate = async (formData: FormData) => {
+    await createGame(formData);
+    router.refresh();
+  };
+
+  const handleGameUpdate = async (formData: FormData) => {
+    await updateGame(formData);
+    setEditingGameId(null);
+    router.refresh();
+  };
+
+  const handleGameDelete = async (formData: FormData) => {
+    await deleteGame(formData);
+    router.refresh();
   };
 
   return (
@@ -105,7 +145,7 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
 
       {lobbyTab === "teams" ? (
         <div className="lobby-pane panel-enter">
-          <form action={createTeam} className="form-grid interactive-form lobby-create-form">
+          <form action={handleTeamCreate} className="form-grid interactive-form lobby-create-form">
             <input type="hidden" name="eventId" value={eventId ?? ""} />
             <div className="field">
               <label htmlFor="team-name">Team name</label>
@@ -131,9 +171,13 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
                       <strong>{team.name}</strong>
                       <span className="members-count">{team.members.length} members registered</span>
                     </div>
-                    <a className="secondary-btn edit-team-btn" href={`#edit-team-${team.id}`}>
+                    <button
+                      className="secondary-btn edit-team-btn"
+                      onClick={() => setEditingTeamId(team.id)}
+                      type="button"
+                    >
                       Edit
-                    </a>
+                    </button>
                   </div>
 
                   <div className="avatar-group-row">
@@ -152,47 +196,12 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
                     ) : null}
                   </div>
 
-                  <form action={deleteTeam} className="remove-form card-remove-trigger">
+                  <form action={handleTeamDelete} className="remove-form card-remove-trigger">
                     <input type="hidden" name="teamId" value={team.id} />
                     <button className="danger-btn remove-btn-small" type="submit">
                       Remove Team
                     </button>
                   </form>
-
-                  <div className="modal" id={`edit-team-${team.id}`}>
-                    <a className="modal-backdrop" href="#" aria-label="Close edit team" />
-                    <div className="modal-panel animate-modal-entrance">
-                      <div className="modal-header">
-                        <div>
-                          <p className="eyebrow">Edit Team Profile</p>
-                          <h3>{team.name}</h3>
-                        </div>
-                        <a className="close-btn" href="#" aria-label="Close">
-                          x
-                        </a>
-                      </div>
-                      <form action={updateTeam} className="form-grid edit-form">
-                        <input type="hidden" name="teamId" value={team.id} />
-                        <div className="field">
-                          <label htmlFor={`edit-team-name-${team.id}`}>Team Name</label>
-                          <input id={`edit-team-name-${team.id}`} name="name" defaultValue={team.name} />
-                        </div>
-                        <div className="field">
-                          <label htmlFor={`edit-team-members-${team.id}`}>Members</label>
-                          <textarea
-                            id={`edit-team-members-${team.id}`}
-                            name="members"
-                            defaultValue={team.members.map((member) => member.name).join("\n")}
-                          />
-                        </div>
-                        <div className="actions modal-save-btn">
-                          <button className="primary-btn" type="submit">
-                            Save Team Profile
-                          </button>
-                        </div>
-                      </form>
-                    </div>
-                  </div>
                 </article>
               ))
             ) : (
@@ -202,7 +211,7 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
         </div>
       ) : (
         <div className="lobby-pane panel-enter">
-          <form action={createGame} className="form-grid compact interactive-form lobby-create-form">
+          <form action={handleGameCreate} className="form-grid compact interactive-form lobby-create-form">
             <input type="hidden" name="eventId" value={eventId ?? ""} />
             <div className="field">
               <label htmlFor="game-name">Game Name</label>
@@ -245,48 +254,21 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
                           <span className="game-order-badge">Display index {game.order}</span>
                         </div>
                       </div>
-                      <a className="secondary-btn edit-game-btn" href={`#edit-game-${game.id}`}>
+                      <button
+                        className="secondary-btn edit-game-btn"
+                        onClick={() => setEditingGameId(game.id)}
+                        type="button"
+                      >
                         Edit
-                      </a>
+                      </button>
                     </div>
 
-                    <form action={deleteGame} className="remove-form card-remove-trigger">
+                    <form action={handleGameDelete} className="remove-form card-remove-trigger">
                       <input type="hidden" name="gameId" value={game.id} />
                       <button className="danger-btn remove-btn-small" type="submit">
                         Remove Game
                       </button>
                     </form>
-
-                    <div className="modal" id={`edit-game-${game.id}`}>
-                      <a className="modal-backdrop" href="#" aria-label="Close edit game" />
-                      <div className="modal-panel animate-modal-entrance">
-                        <div className="modal-header">
-                          <div>
-                            <p className="eyebrow">Edit Competition</p>
-                            <h3>{game.name}</h3>
-                          </div>
-                          <a className="close-btn" href="#" aria-label="Close">
-                            x
-                          </a>
-                        </div>
-                        <form action={updateGame} className="form-grid compact edit-form">
-                          <input type="hidden" name="gameId" value={game.id} />
-                          <div className="field">
-                            <label htmlFor={`edit-game-name-${game.id}`}>Game Name</label>
-                            <input id={`edit-game-name-${game.id}`} name="name" defaultValue={game.name} />
-                          </div>
-                          <div className="field">
-                            <label htmlFor={`edit-game-order-${game.id}`}>Order</label>
-                            <input id={`edit-game-order-${game.id}`} name="order" type="number" defaultValue={game.order} />
-                          </div>
-                          <div className="actions modal-save-btn">
-                            <button className="primary-btn" type="submit">
-                              Save Competition
-                            </button>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
                   </article>
                 );
               })
@@ -296,7 +278,96 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
           </div>
         </div>
       )}
+
+      {editingTeam ? (
+        <div
+          aria-labelledby={`edit-team-title-${editingTeam.id}`}
+          aria-modal="true"
+          className="modal open"
+          role="dialog"
+        >
+          <button
+            className="modal-backdrop"
+            onClick={() => setEditingTeamId(null)}
+            type="button"
+            aria-label="Close edit team"
+          />
+          <div className="modal-panel animate-modal-entrance">
+            <div className="modal-header">
+              <div>
+                <p className="eyebrow">Edit Team Profile</p>
+                <h3 id={`edit-team-title-${editingTeam.id}`}>{editingTeam.name}</h3>
+              </div>
+              <button className="close-btn" onClick={() => setEditingTeamId(null)} type="button" aria-label="Close">
+                x
+              </button>
+            </div>
+            <form action={handleTeamUpdate} className="form-grid edit-form">
+              <input type="hidden" name="teamId" value={editingTeam.id} />
+              <div className="field">
+                <label htmlFor={`edit-team-name-${editingTeam.id}`}>Team Name</label>
+                <input id={`edit-team-name-${editingTeam.id}`} name="name" defaultValue={editingTeam.name} />
+              </div>
+              <div className="field">
+                <label htmlFor={`edit-team-members-${editingTeam.id}`}>Members</label>
+                <textarea
+                  id={`edit-team-members-${editingTeam.id}`}
+                  name="members"
+                  defaultValue={editingTeam.members.map((member) => member.name).join("\n")}
+                />
+              </div>
+              <div className="actions modal-save-btn">
+                <button className="primary-btn" type="submit">
+                  Save Team Profile
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
+
+      {editingGame ? (
+        <div
+          aria-labelledby={`edit-game-title-${editingGame.id}`}
+          aria-modal="true"
+          className="modal open"
+          role="dialog"
+        >
+          <button
+            className="modal-backdrop"
+            onClick={() => setEditingGameId(null)}
+            type="button"
+            aria-label="Close edit game"
+          />
+          <div className="modal-panel animate-modal-entrance">
+            <div className="modal-header">
+              <div>
+                <p className="eyebrow">Edit Competition</p>
+                <h3 id={`edit-game-title-${editingGame.id}`}>{editingGame.name}</h3>
+              </div>
+              <button className="close-btn" onClick={() => setEditingGameId(null)} type="button" aria-label="Close">
+                x
+              </button>
+            </div>
+            <form action={handleGameUpdate} className="form-grid compact edit-form">
+              <input type="hidden" name="gameId" value={editingGame.id} />
+              <div className="field">
+                <label htmlFor={`edit-game-name-${editingGame.id}`}>Game Name</label>
+                <input id={`edit-game-name-${editingGame.id}`} name="name" defaultValue={editingGame.name} />
+              </div>
+              <div className="field">
+                <label htmlFor={`edit-game-order-${editingGame.id}`}>Order</label>
+                <input id={`edit-game-order-${editingGame.id}`} name="order" type="number" defaultValue={editingGame.order} />
+              </div>
+              <div className="actions modal-save-btn">
+                <button className="primary-btn" type="submit">
+                  Save Competition
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
-
