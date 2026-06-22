@@ -2,6 +2,14 @@ import Link from "next/link";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { loadDashboard } from "@/lib/dashboard";
 import { formatScheduleDate, formatScheduleTime } from "@/lib/timetable";
+import {
+  CalendarIcon,
+  ClockIcon,
+  LocationPinIcon,
+  TrophyIcon,
+  UsersIcon,
+} from "@/components/ui/icons";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +54,7 @@ export default async function DisplayPage({ searchParams }: DisplayPageProps) {
   const now = new Date();
   const agendaWithDateTime = timetable
     .map((item) => ({ item, dateTime: getScheduleDateTime(item.scheduleDate, item.time) }))
-    .filter((entry): entry is { item: typeof timetable[number]; dateTime: Date } => Boolean(entry.dateTime));
+    .filter((entry): entry is { item: (typeof timetable)[number]; dateTime: Date } => Boolean(entry.dateTime));
   const upcomingAgenda = agendaWithDateTime.find((entry) => entry.dateTime >= now)?.item ?? null;
   const currentAgenda = [...agendaWithDateTime].reverse().find((entry) => entry.dateTime <= now)?.item ?? null;
   const fallbackAgenda = timetable[0] ?? null;
@@ -56,7 +64,12 @@ export default async function DisplayPage({ searchParams }: DisplayPageProps) {
   const totalGames = scoringGames.length;
 
   const dateLabel = event?.startDate
-    ? event.startDate.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+    ? event.startDate.toLocaleDateString("en-GB", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
     : "Date to be announced";
 
   return (
@@ -68,7 +81,15 @@ export default async function DisplayPage({ searchParams }: DisplayPageProps) {
           <p className="eyebrow">Game Day Live Display</p>
           <h2>{event ? event.title : "Family Day Live"}</h2>
           <p className="display-subtitle">
-            {dateLabel}{event?.location ? ` · ${event.location}` : ""}
+            <CalendarIcon width={18} height={18} />
+            {dateLabel}
+            {event?.location && (
+              <>
+                <span className="display-subtitle-separator">·</span>
+                <LocationPinIcon width={18} height={18} />
+                {event.location}
+              </>
+            )}
           </p>
         </div>
         <div className="display-live-pill">
@@ -79,10 +100,20 @@ export default async function DisplayPage({ searchParams }: DisplayPageProps) {
       <section className="display-scoreboard-grid">
         <article className="display-champion-card glass-panel">
           <p className="eyebrow">Current Champion</p>
-          <div className="champion-medal">🏆</div>
+          <div className="champion-medal">
+            <TrophyIcon width={80} height={80} />
+          </div>
           <h3>{leader ? leader.name : "Waiting for Scores"}</h3>
-          <p>{leader ? `${leader.completedGames}/${totalGames} games completed` : "Rank teams in the placement arena to start standings."}</p>
-          <strong>{leader?.completedGames ? `${leader.roundWins ?? 0} game wins · ${leader.totalPlacement} pts` : "No games scored yet"}</strong>
+          <p>
+            {leader
+              ? `${leader.completedGames}/${totalGames} games completed`
+              : "Rank teams in the placement arena to start standings."}
+          </p>
+          <strong>
+            {leader?.completedGames
+              ? `${leader.roundWins ?? 0} game wins · ${leader.totalPlacement} pts`
+              : "No games scored yet"}
+          </strong>
         </article>
 
         <div className="display-side-stack">
@@ -120,12 +151,20 @@ export default async function DisplayPage({ searchParams }: DisplayPageProps) {
                     <strong>{team.name}</strong>
                     <small>{team.members.join(", ") || "Not decided yet"}</small>
                   </div>
-                  <b>{team.completedGames ? `${team.roundWins ?? 0}W · ${team.totalPlacement} pts` : "-"}</b>
+                  <b>
+                    {team.completedGames
+                      ? `${team.roundWins ?? 0}W · ${team.totalPlacement} pts`
+                      : "-"}
+                  </b>
                 </li>
               ))}
             </ol>
           ) : (
-            <div className="display-empty">No teams registered yet.</div>
+            <EmptyState
+              compact
+              icon={<UsersIcon width={32} height={32} />}
+              title="No teams registered yet"
+            />
           )}
         </article>
 
@@ -139,7 +178,10 @@ export default async function DisplayPage({ searchParams }: DisplayPageProps) {
 
           <div className="display-next-agenda">
             <small>{upcomingAgenda ? "Coming Up" : currentAgenda ? "Current / Latest" : "Schedule"}</small>
-            <span>{displayAgenda ? formatScheduleTime(displayAgenda.time) : "--:--"}</span>
+            <span>
+              <ClockIcon width={24} height={24} />
+              {displayAgenda ? formatScheduleTime(displayAgenda.time) : "--:--"}
+            </span>
             <strong>{displayAgenda ? displayAgenda.title : "No agenda planned"}</strong>
             <p>{displayAgenda ? formatScheduleDate(displayAgenda.scheduleDate) : "Add agenda items in the dashboard."}</p>
             {displayAgenda?.location && <em>📍 {displayAgenda.location}</em>}
@@ -164,7 +206,12 @@ export default async function DisplayPage({ searchParams }: DisplayPageProps) {
             <div className="display-latest-game">
               <span>Latest Game</span>
               <strong>{latestGame.name}</strong>
-              <p>{latestGame.scores.length}/{teams.length * (Number.isFinite(latestGame.rounds) && latestGame.rounds > 0 ? latestGame.rounds : 1)} placements saved</p>
+              <p>
+                {latestGame.scores.length}/
+                {teams.length *
+                  (Number.isFinite(latestGame.rounds) && latestGame.rounds > 0 ? latestGame.rounds : 1)}{" "}
+                placements saved
+              </p>
             </div>
           )}
         </aside>
@@ -177,7 +224,9 @@ export default async function DisplayPage({ searchParams }: DisplayPageProps) {
               <p className="eyebrow">Champion Breakdown</p>
               <h3>{leader.name}</h3>
             </div>
-            <Link className="ghost-link" href="/dashboard#arena">Update Scores</Link>
+            <Link className="ghost-link" href="/dashboard#arena">
+              Update Scores
+            </Link>
           </div>
           <div className="display-breakdown-grid">
             {leader.perGame.map((game) => (

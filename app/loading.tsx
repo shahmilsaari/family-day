@@ -1,22 +1,13 @@
 export default function Loading() {
   return (
-    <main className="page-shell" style={{ paddingTop: "48px" }}>
-      <div style={{ maxWidth: "540px", margin: "0 auto", textAlign: "center" }}>
-        <div className="glass-panel panel-pad stack" style={{ gap: "16px", alignItems: "center" }}>
-          <div
-            style={{
-              width: "40px",
-              height: "40px",
-              border: "3px solid rgba(8, 116, 67, 0.12)",
-              borderTopColor: "var(--accent)",
-              borderRadius: "999px",
-              animation: "buttonSpin 0.7s linear infinite",
-              margin: "0 auto"
-            }}
-          />
-          <strong className="muted">Loading…</strong>
+    <main className="page-shell loading-page-shell">
+      <section className="glass-panel panel-pad stack loading-card">
+        <div className="loading-spinner" />
+        <div className="loading-text">
+          <strong>Loading Family Day…</strong>
+          <span className="muted">Preparing your event workspace</span>
         </div>
-      </div>
+      </section>
     </main>
   );
 }

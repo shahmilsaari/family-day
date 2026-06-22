@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Game, Team } from "@prisma/client";
 import { GamePlacementBoard } from "@/components/game-placement-board";
+import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, GamepadIcon, PlayIcon, TargetIcon } from "@/components/ui/icons";
+import { EmptyState } from "@/components/ui/empty-state";
 
 type TeamWithMembers = Team & { members: { name: string }[] };
 type GameWithScores = Game & { scores: { teamId: number; round: number; points: number }[] };
@@ -43,8 +45,7 @@ export function PlacementConsole({ eventId, games, teams }: PlacementConsoleProp
     return [...games].sort((a, b) => {
       if (gameSortBy === "status") {
         return (
-          Number(isGameComplete(b, teams.length)) -
-            Number(isGameComplete(a, teams.length)) ||
+          Number(isGameComplete(b, teams.length)) - Number(isGameComplete(a, teams.length)) ||
           a.order - b.order ||
           a.name.localeCompare(b.name)
         );
@@ -76,11 +77,22 @@ export function PlacementConsole({ eventId, games, teams }: PlacementConsoleProp
 
   const getNextIncompleteRound = (game: GameWithScores) => {
     const rounds = getGameRounds(game);
-    return Array.from({ length: rounds }, (_, index) => index + 1).find((round) => !isRoundComplete(game, round)) ?? rounds;
+    return (
+      Array.from({ length: rounds }, (_, index) => index + 1).find(
+        (round) => !isRoundComplete(game, round)
+      ) ?? rounds
+    );
   };
 
-  const roundNumbers = activeGame ? Array.from({ length: activeGameRounds }, (_, index) => index + 1) : [];
-  const completedRounds = activeGame ? roundNumbers.filter((round) => isRoundComplete(activeGame, round)).length : 0;
+  const roundNumbers = activeGame
+    ? Array.from({ length: activeGameRounds }, (_, index) => index + 1)
+    : [];
+  const completedRounds = activeGame
+    ? roundNumbers.filter((round) => isRoundComplete(activeGame, round)).length
+    : 0;
+  const nextOpenRound = activeGame ? getNextIncompleteRound(activeGame) : 1;
+  const isAllRoundsComplete = completedRounds === activeGameRounds;
+  const isOnNextOpenRound = activeRound === nextOpenRound && !isAllRoundsComplete;
   const canGoPreviousRound = activeRound > 1;
   const canGoNextRound = activeRound < activeGameRounds;
 
@@ -96,7 +108,7 @@ export function PlacementConsole({ eventId, games, teams }: PlacementConsoleProp
         id: team.id,
         name: team.name,
         members: team.members.map((member) => member.name),
-        placement: placementMap.get(team.id) ?? null
+        placement: placementMap.get(team.id) ?? null,
       }))
       .sort(
         (a, b) =>
@@ -112,7 +124,9 @@ export function PlacementConsole({ eventId, games, teams }: PlacementConsoleProp
         <div>
           <p className="eyebrow">Level Selector</p>
           <h3>Game Placements Arena</h3>
-          <p className="muted">Rank each round here. The leaderboard converts all rounds into one final score per game.</p>
+          <p className="muted">
+            Rank each round here. The leaderboard converts all rounds into one final score per game.
+          </p>
         </div>
         <label className="sort-control">
           <span>Sort by</span>
@@ -142,11 +156,14 @@ export function PlacementConsole({ eventId, games, teams }: PlacementConsoleProp
                   type="button"
                 >
                   <span className="level-status" aria-hidden="true">
-                    {complete ? "✓" : "▶"}
+                    {complete ? <CheckIcon width={14} height={14} /> : <PlayIcon width={14} height={14} />}
                   </span>
-                  <span className="level-name" title={game.description ?? game.name}>{game.name}</span>
+                  <span className="level-name" title={game.description ?? game.name}>
+                    {game.name}
+                  </span>
                   <small>
-                    {game.scores.length}/{teams.length * getGameRounds(game)} · {getGameRounds(game)}R · {game.includeInScore ? "Scored" : "Fun only"}
+                    {game.scores.length}/{teams.length * getGameRounds(game)} · {getGameRounds(game)}R ·{" "}
+                    {game.includeInScore ? "Scored" : "Fun only"}
                   </small>
                 </button>
               );
@@ -156,21 +173,60 @@ export function PlacementConsole({ eventId, games, teams }: PlacementConsoleProp
           <div className="arena-panel panel-enter" key={`${activeGame?.id}-${activeRound}`}>
             {activeGame ? (
               <>
-                <div className="round-command-center">
-                  <div>
-                    <p className="eyebrow">Round Control</p>
-                    <strong>{completedRounds}/{activeGameRounds} rounds complete</strong>
-                    <span className="muted">Rounds decide this game only. Live standings count this as one game score.</span>
+                <div className="round-command-center round-control-v2">
+                  <div className="round-control-meta">
+                    <div className="round-control-badge">
+                      <TargetIcon width={18} height={18} />
+                      <span>Round {activeRound} of {activeGameRounds}</span>
+                    </div>
+                    <div className="round-progress-stack">
+                      <div className="round-progress-header">
+                        <strong>{completedRounds}/{activeGameRounds} rounds complete</strong>
+                        <span className="muted">{Math.round((completedRounds / activeGameRounds) * 100)}%</span>
+                      </div>
+                      <div className="round-progress-bar" role="progressbar" aria-valuenow={completedRounds} aria-valuemin={0} aria-valuemax={activeGameRounds}>
+                        <div className="round-progress-fill" style={{ width: `${(completedRounds / activeGameRounds) * 100}%` }} />
+                      </div>
+                      <span className="muted round-control-hint">
+                        Rounds decide this game only. Live standings count this as one game score.
+                      </span>
+                    </div>
                   </div>
-                  <div className="round-step-actions">
-                    <button type="button" className="secondary-btn" disabled={!canGoPreviousRound} onClick={() => setSelectedRound(activeRound - 1)}>
-                      ← Previous
+                  <div className="round-step-actions round-control-actions">
+                    <button
+                      type="button"
+                      className="secondary-btn round-nav-btn"
+                      disabled={!canGoPreviousRound || activeGameRounds === 1}
+                      onClick={() => setSelectedRound(activeRound - 1)}
+                      aria-label="Previous round"
+                    >
+                      <ChevronLeftIcon width={18} height={18} />
+                      Previous
                     </button>
-                    <button type="button" className="secondary-btn" onClick={() => setSelectedRound(getNextIncompleteRound(activeGame))}>
-                      Next Open
-                    </button>
-                    <button type="button" className="secondary-btn" disabled={!canGoNextRound} onClick={() => setSelectedRound(activeRound + 1)}>
-                      Next →
+                    {activeGameRounds > 1 && (
+                      <button
+                        type="button"
+                        className="primary-btn round-open-btn"
+                        onClick={() => setSelectedRound(nextOpenRound)}
+                        disabled={isAllRoundsComplete || isOnNextOpenRound}
+                      >
+                        <TargetIcon width={16} height={16} />
+                        {isAllRoundsComplete
+                          ? "All Complete"
+                          : isOnNextOpenRound
+                          ? "Current Round"
+                          : `Open Round ${nextOpenRound}`}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="secondary-btn round-nav-btn"
+                      disabled={!canGoNextRound || activeGameRounds === 1}
+                      onClick={() => setSelectedRound(activeRound + 1)}
+                      aria-label="Next round"
+                    >
+                      Next
+                      <ChevronRightIcon width={18} height={18} />
                     </button>
                   </div>
                 </div>
@@ -188,12 +244,16 @@ export function PlacementConsole({ eventId, games, teams }: PlacementConsoleProp
                           type="button"
                           role="tab"
                           aria-selected={current}
-                          className={`round-chip ${current ? "active" : ""} ${complete ? "complete" : savedCount > 0 ? "started" : "pending"}`}
+                          className={`round-chip ${current ? "active" : ""} ${
+                            complete ? "complete" : savedCount > 0 ? "started" : "pending"
+                          }`}
                           onClick={() => setSelectedRound(round)}
                         >
                           <span>{complete ? "✓" : savedCount > 0 ? "•" : round}</span>
                           <strong>Round {round}</strong>
-                          <small>{savedCount}/{teams.length}</small>
+                          <small>
+                            {savedCount}/{teams.length}
+                          </small>
                         </button>
                       );
                     })}
@@ -213,13 +273,12 @@ export function PlacementConsole({ eventId, games, teams }: PlacementConsoleProp
           </div>
         </>
       ) : (
-        <div className="empty-state placements-empty-state">
-          <div className="empty-icon">🎮</div>
-          <strong>Placements require active teams and games</strong>
-          <span>Create at least one team and setup one competition before ranking standings.</span>
-        </div>
+        <EmptyState
+          icon={<GamepadIcon width={48} height={48} />}
+          title="Placements require active teams and games"
+          description="Create at least one team and setup one competition before ranking standings."
+        />
       )}
     </section>
   );
 }
-

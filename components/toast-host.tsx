@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CheckIcon, InfoIcon, WarningIcon, XIcon } from "@/components/ui/icons";
 
 type ToastType = "success" | "warning" | "error";
 
@@ -8,6 +9,12 @@ type Toast = {
   id: number;
   message: string;
   type: ToastType;
+};
+
+const toastConfig: Record<ToastType, { icon: typeof CheckIcon; label: string; className: string }> = {
+  success: { icon: CheckIcon, label: "Success", className: "toast-success" },
+  warning: { icon: WarningIcon, label: "Warning", className: "toast-warning" },
+  error: { icon: InfoIcon, label: "Error", className: "toast-error" },
 };
 
 export function notify(message: string, type: ToastType = "success") {
@@ -37,12 +44,29 @@ export function ToastHost() {
 
   return (
     <div className="toast-stack" aria-live="polite" aria-atomic="true">
-      {toasts.map((toast) => (
-        <div className={`toast-card toast-${toast.type}`} key={toast.id} role="status">
-          <span className="toast-dot" />
-          <strong>{toast.message}</strong>
-        </div>
-      ))}
+      {toasts.map((toast) => {
+        const config = toastConfig[toast.type];
+        const Icon = config.icon;
+        return (
+          <div className={`toast-card ${config.className}`} key={toast.id} role="status">
+            <div className="toast-icon-wrap">
+              <Icon width={18} height={18} />
+            </div>
+            <div className="toast-body">
+              <span className="toast-label">{config.label}</span>
+              <strong>{toast.message}</strong>
+            </div>
+            <button
+              className="toast-close"
+              onClick={() => setToasts((current) => current.filter((t) => t.id !== toast.id))}
+              type="button"
+              aria-label="Dismiss notification"
+            >
+              <XIcon width={14} height={14} />
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 }

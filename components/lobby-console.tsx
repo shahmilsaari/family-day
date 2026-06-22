@@ -11,8 +11,10 @@ import {
   deleteTeam,
   updateGame,
   updateTeam,
-  updateGameOrder
+  updateGameOrder,
 } from "@/app/actions";
+import { DragHandleIcon, EditIcon, GamepadIcon, TrophyIcon, UsersIcon } from "@/components/ui/icons";
+import { EmptyState } from "@/components/ui/empty-state";
 
 type TeamWithMembers = Team & { members: { name: string }[] };
 type GameWithScores = Game & { scores: { teamId: number; round: number; points: number }[] };
@@ -22,19 +24,6 @@ type LobbyConsoleProps = {
   teams: TeamWithMembers[];
   games: GameWithScores[];
 };
-
-function DragHandleIcon() {
-  return (
-    <svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.45 }}>
-      <circle cx="2" cy="3" r="1" />
-      <circle cx="2" cy="10" r="1" />
-      <circle cx="2" cy="17" r="1" />
-      <circle cx="10" cy="3" r="1" />
-      <circle cx="10" cy="10" r="1" />
-      <circle cx="10" cy="17" r="1" />
-    </svg>
-  );
-}
 
 export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
   const router = useRouter();
@@ -166,6 +155,7 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
           onClick={() => setLobbyTab("teams")}
           type="button"
         >
+          <UsersIcon width={18} height={18} />
           <span>Lobby Teams</span>
           <b>{teams.length}</b>
         </button>
@@ -174,6 +164,7 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
           onClick={() => setLobbyTab("games")}
           type="button"
         >
+          <TrophyIcon width={18} height={18} />
           <span>Lobby Games</span>
           <b>{games.length}</b>
         </button>
@@ -208,11 +199,12 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
                       <span className="members-count">{team.members.length} members registered</span>
                     </div>
                     <button
-                      className="secondary-btn edit-team-btn"
+                      className="icon-btn edit-team-btn"
                       onClick={() => setEditingTeamId(team.id)}
                       type="button"
+                      aria-label={`Edit ${team.name}`}
                     >
-                      Edit
+                      <EditIcon width={16} height={16} />
                     </button>
                   </div>
 
@@ -249,7 +241,12 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
                 </article>
               ))
             ) : (
-              <span className="muted empty-note">No teams registered yet.</span>
+              <EmptyState
+                compact
+                icon={<UsersIcon width={28} height={28} />}
+                title="No teams registered yet"
+                description="Add a team using the form above to get started."
+              />
             )}
           </div>
         </div>
@@ -303,20 +300,24 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
                     <div className="record-summary game-summary-block">
                       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <div style={{ cursor: "grab", display: "flex", alignItems: "center" }} title="Drag to reorder game">
-                          <DragHandleIcon />
+                          <DragHandleIcon width={12} height={20} />
                         </div>
                         <div>
                           <strong>{game.name}</strong>
                           {game.description ? <small className="muted">{game.description}</small> : null}
-                          <span className="game-order-badge">Display index {game.order} · {game.rounds || 1} round{(game.rounds || 1) === 1 ? "" : "s"} · {game.includeInScore ? "Scored" : "Fun only"}</span>
+                          <span className="game-order-badge">
+                            Display index {game.order} · {game.rounds || 1} round{(game.rounds || 1) === 1 ? "" : "s"} ·{" "}
+                            {game.includeInScore ? "Scored" : "Fun only"}
+                          </span>
                         </div>
                       </div>
                       <button
-                        className="secondary-btn edit-game-btn"
+                        className="icon-btn edit-game-btn"
                         onClick={() => setEditingGameId(game.id)}
                         type="button"
+                        aria-label={`Edit ${game.name}`}
                       >
-                        Edit
+                        <EditIcon width={16} height={16} />
                       </button>
                     </div>
 
@@ -338,19 +339,19 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
                 );
               })
             ) : (
-              <span className="muted empty-note">No active games setup yet.</span>
+              <EmptyState
+                compact
+                icon={<GamepadIcon width={28} height={28} />}
+                title="No active games setup yet"
+                description="Create a competition above before ranking placements."
+              />
             )}
           </div>
         </div>
       )}
 
       {editingTeam ? (
-        <div
-          aria-labelledby={`edit-team-title-${editingTeam.id}`}
-          aria-modal="true"
-          className="modal open"
-          role="dialog"
-        >
+        <div aria-labelledby={`edit-team-title-${editingTeam.id}`} aria-modal="true" className="modal open" role="dialog">
           <button
             className="modal-backdrop"
             onClick={() => setEditingTeamId(null)}
@@ -364,7 +365,7 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
                 <h3 id={`edit-team-title-${editingTeam.id}`}>{editingTeam.name}</h3>
               </div>
               <button className="close-btn" onClick={() => setEditingTeamId(null)} type="button" aria-label="Close">
-                x
+                ×
               </button>
             </div>
             <form action={handleTeamUpdate} className="form-grid edit-form">
@@ -392,12 +393,7 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
       ) : null}
 
       {editingGame ? (
-        <div
-          aria-labelledby={`edit-game-title-${editingGame.id}`}
-          aria-modal="true"
-          className="modal open"
-          role="dialog"
-        >
+        <div aria-labelledby={`edit-game-title-${editingGame.id}`} aria-modal="true" className="modal open" role="dialog">
           <button
             className="modal-backdrop"
             onClick={() => setEditingGameId(null)}
@@ -411,7 +407,7 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
                 <h3 id={`edit-game-title-${editingGame.id}`}>{editingGame.name}</h3>
               </div>
               <button className="close-btn" onClick={() => setEditingGameId(null)} type="button" aria-label="Close">
-                x
+                ×
               </button>
             </div>
             <form action={handleGameUpdate} className="form-grid compact edit-form">
@@ -422,7 +418,11 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
               </div>
               <div className="field">
                 <label htmlFor={`edit-game-description-${editingGame.id}`}>Description</label>
-                <textarea id={`edit-game-description-${editingGame.id}`} name="description" defaultValue={editingGame.description ?? ""} />
+                <textarea
+                  id={`edit-game-description-${editingGame.id}`}
+                  name="description"
+                  defaultValue={editingGame.description ?? ""}
+                />
               </div>
               <div className="field">
                 <label htmlFor={`edit-game-order-${editingGame.id}`}>Order</label>
@@ -430,7 +430,13 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
               </div>
               <div className="field">
                 <label htmlFor={`edit-game-rounds-${editingGame.id}`}>Rounds</label>
-                <input id={`edit-game-rounds-${editingGame.id}`} name="rounds" type="number" min="1" defaultValue={editingGame.rounds || 1} />
+                <input
+                  id={`edit-game-rounds-${editingGame.id}`}
+                  name="rounds"
+                  type="number"
+                  min="1"
+                  defaultValue={editingGame.rounds || 1}
+                />
               </div>
               <label className="checkbox-field">
                 <input name="includeInScore" type="checkbox" defaultChecked={editingGame.includeInScore} />
