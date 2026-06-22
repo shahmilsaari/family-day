@@ -14,8 +14,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Family Day",
-  description: "Family day planning and scoring dashboard"
+  title: "Family Day — Event Planning & Scoring",
+  description: "Plan your community Family Day: teams, games, schedules, and live scoring."
 };
 
 export default async function RootLayout({
@@ -34,7 +34,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className={plusJakartaSans.className}>
+      <body className={plusJakartaSans.variable} style={{ fontFamily: "var(--font-sans)" }}>
         <div className="page-shell">
           <SiteHeader user={user ? { name: user.name, email: user.email } : null} events={events} />
           {children}
