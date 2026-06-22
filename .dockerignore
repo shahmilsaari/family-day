@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+.env
+.env.local
+dev.db
+prisma/dev.db
+*.md
+Dockerfile
+.dockerignore

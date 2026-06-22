@@ -1,0 +1,127 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "components/**"
+      - "lib/**"
+      - "prisma/**"
+      - "scripts/**"
+      - "package.json"
+      - "package-lock.json"
+      - "next.config.mjs"
+      - "tsconfig.json"
+      - "prisma.config.ts"
+      - "proxy.ts"
+      - "Dockerfile"
+      - "k8s/**"
+      - ".github/workflows/cd.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+concurrency:
+  group: cd-${{ github.repository }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    if: github.actor != 'github-actions[bot]' && (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip cd]'))
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve image metadata
+        id: meta
+        run: |
+          REPO_LOWER="$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
+          IMAGE_REPO="ghcr.io/${REPO_LOWER}"
+          echo "image_repo=${IMAGE_REPO}" >> "$GITHUB_OUTPUT"
+          echo "image_tag=${GITHUB_SHA::8}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push prod image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.image_repo }}:${{ steps.meta.outputs.image_tag }}
+            ${{ steps.meta.outputs.image_repo }}:main-latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Update Kustomize image tag
+        run: |
+          PROD_FILE="k8s/overlays/prod/kustomization.yaml"
+          sed -i "s|newName: .*|newName: ${{ steps.meta.outputs.image_repo }}|" "$PROD_FILE"
+          sed -i "s|newTag: .*|newTag: \"${{ steps.meta.outputs.image_tag }}\"|" "$PROD_FILE"
+
+      - name: Commit and push overlay changes
+        run: |
+          if git diff --quiet; then
+            echo "No manifest updates to commit"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add k8s/overlays/prod/kustomization.yaml
+          git commit -m "chore: bump image to ${{ steps.meta.outputs.image_tag }} [skip cd]"
+
+          for attempt in 1 2 3; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              echo "Deploy commit pushed on attempt ${attempt}"
+              exit 0
+            fi
+            echo "Push attempt ${attempt} failed due to concurrent update. Retrying..."
+            sleep $((attempt * 2))
+          done
+
+          echo "Failed to push deploy commit after 3 attempts"
+          exit 1
+
+      - name: Smoke check public site
+        run: |
+          sleep 90
+          for attempt in 1 2 3 4 5; do
+            if curl -fsSI --max-time 10 "https://family.shahmilsaari.my" >/dev/null; then
+              echo "Smoke check passed: https://family.shahmilsaari.my"
+              exit 0
+            fi
+            echo "Smoke check attempt ${attempt} failed"
+            sleep 15
+          done
+
+          echo "Smoke check failed: https://family.shahmilsaari.my"
+          exit 1
+
+      - name: Purge Cloudflare cache
+        env:
+          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        if: ${{ env.CF_ZONE_ID != '' && env.CF_API_TOKEN != '' }}
+        run: |
+          sleep 60
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \\
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'

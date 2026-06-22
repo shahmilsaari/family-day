@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: family-day-prod
+
+resources:
+  - namespace.yaml
+  - ../../base
+  - sealed-ghcr-pull-secret.yaml
+
+images:
+  - name: family-day-web
+    newName: ghcr.io/shahmilsaari/family-day
+    newTag: "main-latest"
+
+patches:
+  - path: patch-deployment.yaml
+  - path: patch-ingress.yaml
