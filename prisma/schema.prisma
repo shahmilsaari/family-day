@@ -102,7 +102,10 @@ model Game {
   id           Int           @id @default(autoincrement())
   eventId      Int
   name         String
+  description  String?
+  includeInScore Boolean     @default(true)
   order        Int           @default(0)
+  rounds       Int           @default(1)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
@@ -118,6 +121,7 @@ model Score {
   eventId   Int
   teamId    Int
   gameId    Int
+  round     Int      @default(1)
   points    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -126,6 +130,6 @@ model Score {
   team      Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
   game      Game           @relation(fields: [gameId], references: [id], onDelete: Cascade)
 
-  @@unique([teamId, gameId])
+  @@unique([teamId, gameId, round])
   @@map("scores")
 }

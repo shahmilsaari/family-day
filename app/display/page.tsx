@@ -51,10 +51,12 @@ export default async function DisplayPage({ searchParams }: DisplayPageProps) {
   const currentAgenda = [...agendaWithDateTime].reverse().find((entry) => entry.dateTime <= now)?.item ?? null;
   const fallbackAgenda = timetable[0] ?? null;
   const displayAgenda = upcomingAgenda ?? currentAgenda ?? fallbackAgenda;
+  const scoringGames = games.filter((game) => game.includeInScore);
   const latestGame = games.find((game) => game.scores.length > 0) ?? games[0] ?? null;
+  const totalGames = scoringGames.length;
 
   const dateLabel = event?.startDate
-    ? event.startDate.toLocaleDateString("en-MY", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+    ? event.startDate.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
     : "Date to be announced";
 
   return (
@@ -79,8 +81,8 @@ export default async function DisplayPage({ searchParams }: DisplayPageProps) {
           <p className="eyebrow">Current Champion</p>
           <div className="champion-medal">🏆</div>
           <h3>{leader ? leader.name : "Waiting for Scores"}</h3>
-          <p>{leader ? `${leader.completedGames}/${games.length} games completed` : "Rank teams in the placement arena to start standings."}</p>
-          <strong>{leader?.completedGames ? `${leader.totalPlacement} total place points` : "No scores yet"}</strong>
+          <p>{leader ? `${leader.completedGames}/${totalGames} games completed` : "Rank teams in the placement arena to start standings."}</p>
+          <strong>{leader?.completedGames ? `${leader.roundWins ?? 0} game wins · ${leader.totalPlacement} pts` : "No games scored yet"}</strong>
         </article>
 
         <div className="display-side-stack">
@@ -93,7 +95,7 @@ export default async function DisplayPage({ searchParams }: DisplayPageProps) {
             <strong>{totals.games}</strong>
           </article>
           <article className="display-mini-stat glass-panel">
-            <span>Scores</span>
+            <span>Placements</span>
             <strong>{totals.scores}</strong>
           </article>
         </div>
@@ -116,9 +118,9 @@ export default async function DisplayPage({ searchParams }: DisplayPageProps) {
                   <span className="display-rank">{index + 1}</span>
                   <div>
                     <strong>{team.name}</strong>
-                    <small>{team.members.join(", ") || "No members"}</small>
+                    <small>{team.members.join(", ") || "Not decided yet"}</small>
                   </div>
-                  <b>{team.completedGames ? team.totalPlacement : "-"}</b>
+                  <b>{team.completedGames ? `${team.roundWins ?? 0}W · ${team.totalPlacement} pts` : "-"}</b>
                 </li>
               ))}
             </ol>
@@ -162,7 +164,7 @@ export default async function DisplayPage({ searchParams }: DisplayPageProps) {
             <div className="display-latest-game">
               <span>Latest Game</span>
               <strong>{latestGame.name}</strong>
-              <p>{latestGame.scores.length}/{teams.length} placements saved</p>
+              <p>{latestGame.scores.length}/{teams.length * (Number.isFinite(latestGame.rounds) && latestGame.rounds > 0 ? latestGame.rounds : 1)} placements saved</p>
             </div>
           )}
         </aside>

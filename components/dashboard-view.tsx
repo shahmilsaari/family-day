@@ -8,14 +8,17 @@ import { PlacementConsole } from "@/components/placement-console";
 import { RefreshActionForm } from "@/components/refresh-action-form";
 
 type TeamWithMembers = Team & { members: { name: string }[] };
-type GameWithScores = Game & { scores: { teamId: number; points: number }[] };
+type GameWithScores = Game & { scores: { teamId: number; round: number; points: number }[] };
 
 type LeaderboardRow = {
   id: number;
   name: string;
   members: string[];
-  perGame: { gameId: number; gameName: string; placement: number | null }[];
+  perGame: { gameId: number; gameName: string; placement: number | null; completedRounds?: number; totalRounds?: number }[];
   completedGames: number;
+  roundWins?: number;
+  secondPlaces?: number;
+  thirdPlaces?: number;
   totalPlacement: number;
 };
 
@@ -25,7 +28,7 @@ type DashboardState = {
   games: GameWithScores[];
   teams: TeamWithMembers[];
   timetable: TentativeSchedule[];
-  totals: { teams: number; games: number; scores: number };
+  totals: { teams: number; games: number; scores: number; rounds?: number };
 };
 
 // SVG Icons for dashboard stats
@@ -86,7 +89,7 @@ export function DashboardView({ state }: { state: DashboardState }) {
 
   // Format date range helper
   const formatDate = (d: Date | null | undefined) =>
-    d ? d.toLocaleDateString("en-MY", { weekday: "short", day: "numeric", month: "short", year: "numeric" }) : null;
+    d ? d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" }) : null;
 
   const startLabel = formatDate(event?.startDate);
   const endLabel = formatDate(event?.endDate);
@@ -186,7 +189,7 @@ export function DashboardView({ state }: { state: DashboardState }) {
           <div>
             <span className="overview-card-label">Competition Setup</span>
             <strong className="overview-card-value">{totals.teams} teams · {totals.games} games</strong>
-            <p className="muted">{totals.scores} placement entries recorded so far.</p>
+            <p className="muted">{totals.scores} round placements recorded. Leaderboard score is standardized per game.</p>
           </div>
         </article>
 
@@ -195,7 +198,7 @@ export function DashboardView({ state }: { state: DashboardState }) {
           <div>
             <span className="overview-card-label">Current Leader</span>
             <strong className="overview-card-value">{featuredTeam ? featuredTeam.name : "Waiting for results"}</strong>
-            <p className="muted">{featuredTeam ? `${featuredTeam.completedGames} games completed.` : "Live standings will appear after scoring."}</p>
+            <p className="muted">{featuredTeam ? `${featuredTeam.completedGames} games scored · ${featuredTeam.roundWins ?? 0} game wins.` : "Live standings will appear after scoring."}</p>
           </div>
         </article>
       </section>
@@ -341,7 +344,7 @@ export function DashboardView({ state }: { state: DashboardState }) {
             <p className="eyebrow">Standings</p>
             <h3>Live Tournament Standings</h3>
           </div>
-          <span className="dashboard-stage-note">Auto-recalculates from saved placements.</span>
+          <span className="dashboard-stage-note">Auto-recalculates per game: most game wins, then lowest game points.</span>
         </div>
         <LeaderboardInteractive leaderboard={leaderboard} games={games} />
       </section>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createEventWorkspace, duplicateEventWorkspace } from "@/app/event-actions";
+import { RefreshActionForm } from "@/components/refresh-action-form";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -32,7 +33,7 @@ export default async function EventsPage() {
             <h3>Create workspace</h3>
             <p className="muted">Start a clean event for a new community or year.</p>
           </div>
-          <form action={createEventWorkspace} className="form-grid interactive-form">
+          <RefreshActionForm action={createEventWorkspace} className="form-grid interactive-form" successMessage="Event created">
             <div className="field">
               <label htmlFor="new-title">Event title</label>
               <input id="new-title" name="title" placeholder="Family Day 2027" defaultValue={`Family Day ${new Date().getFullYear() + 1}`} />
@@ -46,7 +47,7 @@ export default async function EventsPage() {
               <input id="new-location" name="location" placeholder="Optional" />
             </div>
             <button className="primary-btn" type="submit">Create Event</button>
-          </form>
+          </RefreshActionForm>
         </div>
 
         <div className="glass-panel panel-pad stack event-create-card">
@@ -56,14 +57,14 @@ export default async function EventsPage() {
             <p className="muted">Copy games, teams, and agenda template. Scores are reset.</p>
           </div>
           {latest ? (
-            <form action={duplicateEventWorkspace} className="form-grid interactive-form">
+            <RefreshActionForm action={duplicateEventWorkspace} className="form-grid interactive-form" successMessage="Event duplicated">
               <input type="hidden" name="eventId" value={latest.id} />
               <div className="field">
                 <label htmlFor="duplicate-year">Target year</label>
                 <input id="duplicate-year" name="targetYear" type="number" defaultValue={latest.year + 1} />
               </div>
               <button className="secondary-btn" type="submit">Duplicate {latest.year} Setup</button>
-            </form>
+            </RefreshActionForm>
           ) : (
             <p className="muted">Create your first event before duplicating.</p>
           )}

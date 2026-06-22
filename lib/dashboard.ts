@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export type DashboardEvent = Awaited<ReturnType<typeof loadDashboard>>["event"];
@@ -15,9 +15,33 @@ function getTimeSortValue(value: string) {
 }
 
 export async function loadDashboard(eventId?: number) {
-  const user = await requireUser();
+  const user = await getCurrentUser();
+
+  // Authenticated users see only their own events.
+  // Unauthenticated visitors can view a specific event by ID (for the public display page).
+  // Without a user or eventId, return an empty state (public landing page).
+  const where = user
+    ? eventId
+      ? { id: eventId, userId: user.id }
+      : { userId: user.id }
+    : eventId
+      ? { id: eventId }
+      : null;
+
+  if (!where) {
+    return {
+      event: null,
+      leaderboard: [],
+      games: [],
+      teams: [],
+      timetable: [],
+      scoreCells: [],
+      totals: { teams: 0, games: 0, scores: 0, rounds: 0 }
+    };
+  }
+
   const event = await prisma.familyDayEvent.findFirst({
-    where: eventId ? { id: eventId, userId: user.id } : { userId: user.id },
+    where,
     orderBy: [{ year: "desc" }, { createdAt: "desc" }],
     include: {
       teams: {
@@ -42,7 +66,7 @@ export async function loadDashboard(eventId?: number) {
       teams: [],
       timetable: [],
       scoreCells: [],
-      totals: { teams: 0, games: 0, scores: 0 }
+      totals: { teams: 0, games: 0, scores: 0, rounds: 0 }
     };
   }
 
@@ -59,22 +83,57 @@ export async function loadDashboard(eventId?: number) {
       a.title.localeCompare(b.title)
     );
   });
-  const scoreMap = new Map<string, number>();
+  const scoringGames = games.filter((game) => game.includeInScore);
+  const gamePlacementMap = new Map<string, number>();
+  const gameWinMap = new Map<number, number>();
+  const gameSecondMap = new Map<number, number>();
+  const gameThirdMap = new Map<number, number>();
 
-  for (const game of games) {
-    for (const score of game.scores) {
-      scoreMap.set(`${score.teamId}:${score.gameId}`, score.points);
-    }
+  for (const game of scoringGames) {
+    const teamStats = teams
+      .map((team) => {
+        const scores = game.scores.filter((score) => score.teamId === team.id);
+        return {
+          teamId: team.id,
+          name: team.name,
+          completedRounds: scores.length,
+          totalRoundPoints: scores.reduce((sum, score) => sum + score.points, 0),
+          roundWins: scores.filter((score) => score.points === 1).length,
+          secondPlaces: scores.filter((score) => score.points === 2).length,
+          thirdPlaces: scores.filter((score) => score.points === 3).length
+        };
+      })
+      .filter((stat) => stat.completedRounds > 0)
+      .sort(
+        (a, b) =>
+          b.roundWins - a.roundWins ||
+          a.totalRoundPoints - b.totalRoundPoints ||
+          b.secondPlaces - a.secondPlaces ||
+          b.thirdPlaces - a.thirdPlaces ||
+          b.completedRounds - a.completedRounds ||
+          a.name.localeCompare(b.name)
+      );
+
+    teamStats.forEach((stat, index) => {
+      const gamePlacement = index + 1;
+      gamePlacementMap.set(`${stat.teamId}:${game.id}`, gamePlacement);
+      if (gamePlacement === 1) gameWinMap.set(stat.teamId, (gameWinMap.get(stat.teamId) ?? 0) + 1);
+      if (gamePlacement === 2) gameSecondMap.set(stat.teamId, (gameSecondMap.get(stat.teamId) ?? 0) + 1);
+      if (gamePlacement === 3) gameThirdMap.set(stat.teamId, (gameThirdMap.get(stat.teamId) ?? 0) + 1);
+    });
   }
 
   const leaderboard = teams
     .map((team) => {
-      const perGame = games.map((game) => ({
+      const perGame = scoringGames.map((game) => ({
         gameId: game.id,
         gameName: game.name,
-        placement: scoreMap.get(`${team.id}:${game.id}`) ?? null
+        placement: gamePlacementMap.get(`${team.id}:${game.id}`) ?? null
       }));
       const completedGames = perGame.filter((cell) => cell.placement !== null).length;
+      const roundWins = gameWinMap.get(team.id) ?? 0;
+      const secondPlaces = gameSecondMap.get(team.id) ?? 0;
+      const thirdPlaces = gameThirdMap.get(team.id) ?? 0;
 
       return {
         id: team.id,
@@ -82,13 +141,19 @@ export async function loadDashboard(eventId?: number) {
         members: team.members.map((member) => member.name),
         perGame,
         completedGames,
+        roundWins,
+        secondPlaces,
+        thirdPlaces,
         totalPlacement: perGame.reduce((sum, cell) => sum + (cell.placement ?? 0), 0)
       };
     })
     .sort(
       (a, b) =>
         b.completedGames - a.completedGames ||
+        b.roundWins - a.roundWins ||
         a.totalPlacement - b.totalPlacement ||
+        b.secondPlaces - a.secondPlaces ||
+        b.thirdPlaces - a.thirdPlaces ||
         a.name.localeCompare(b.name)
     );
 
@@ -102,7 +167,8 @@ export async function loadDashboard(eventId?: number) {
     totals: {
       teams: teams.length,
       games: games.length,
-      scores: games.reduce((count, game) => count + game.scores.length, 0)
+      scores: scoringGames.reduce((count, game) => count + game.scores.length, 0),
+      rounds: scoringGames.reduce((count, game) => count + (Number.isFinite(game.rounds) && game.rounds > 0 ? game.rounds : 1), 0)
     }
   };
 }

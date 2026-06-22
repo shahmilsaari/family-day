@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { notify } from "@/components/toast-host";
 
 type RefreshActionFormProps = Omit<ComponentPropsWithoutRef<"form">, "action"> & {
-  action: (formData: FormData) => Promise<void>;
+  action: (formData: FormData) => Promise<{ error?: string } | void>;
   successMessage?: string;
 };
 
@@ -17,9 +17,19 @@ export function RefreshActionForm({ action, successMessage = "Changes saved", cl
   const refreshAction = async (formData: FormData) => {
     setIsSubmitting(true);
     try {
-      await action(formData);
+      const result = await action(formData);
+      if (result?.error) {
+        notify(result.error, "error");
+        return;
+      }
       notify(successMessage);
       router.refresh();
+    } catch (error) {
+      // Re-throw redirect errors so Next.js can perform the navigation
+      if (error instanceof Error && typeof (error as Error & { digest?: string }).digest === "string" && (error as Error & { digest?: string }).digest!.startsWith("NEXT_REDIRECT")) {
+        throw error;
+      }
+      notify("An unexpected error occurred.", "error");
     } finally {
       setIsSubmitting(false);
     }

@@ -6,8 +6,11 @@ type LeaderboardRow = {
   id: number;
   name: string;
   members: string[];
-  perGame: { gameId: number; gameName: string; placement: number | null }[];
+  perGame: { gameId: number; gameName: string; placement: number | null; completedRounds?: number; totalRounds?: number }[];
   completedGames: number;
+  roundWins?: number;
+  secondPlaces?: number;
+  thirdPlaces?: number;
   totalPlacement: number;
 };
 
@@ -15,6 +18,8 @@ type GameWithScores = {
   id: number;
   name: string;
   order: number;
+  rounds: number;
+  includeInScore: boolean;
 };
 
 type LeaderboardInteractiveProps = {
@@ -160,7 +165,13 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
     // Sort
     list.sort((a, b) => {
       if (sortBy === "completed") {
-        return b.completedGames - a.completedGames || a.totalPlacement - b.totalPlacement;
+        return (
+          b.completedGames - a.completedGames ||
+          (b.roundWins ?? 0) - (a.roundWins ?? 0) ||
+          a.totalPlacement - b.totalPlacement ||
+          (b.secondPlaces ?? 0) - (a.secondPlaces ?? 0) ||
+          (b.thirdPlaces ?? 0) - (a.thirdPlaces ?? 0)
+        );
       }
       if (sortBy === "name") {
         return a.name.localeCompare(b.name);
@@ -198,7 +209,8 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
     });
   }, [processedLeaderboard, leaderboard]);
 
-  const totalGamesCount = games.length;
+  const scoringGames = games.filter((game) => game.includeInScore);
+  const totalGamesCount = scoringGames.length;
 
   const placementLabel = (placement: number | null) => {
     if (placement === null) return "-";
@@ -212,6 +224,20 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
     <div className="leaderboard-interactive-container">
       {showConfetti && <ConfettiEffect />}
       
+      <div className="scoring-explainer-card">
+        <div>
+          <p className="eyebrow">How Victory Is Calculated</p>
+          <strong>Leaderboard is scored per game, not per round.</strong>
+          <span>Rounds decide the result inside each game. Then each game gives one final placement: 1st = 1 point, 2nd = 2 points, 3rd = 3 points. Lowest game placement total wins.</span>
+        </div>
+        <ol>
+          <li>Most completed games</li>
+          <li>Most game wins</li>
+          <li>Lowest game placement points</li>
+          <li>Most 2nd places, then 3rd places</li>
+        </ol>
+      </div>
+
       {/* Controls Bar */}
       <div className="leaderboard-controls">
         <div className="search-box">
@@ -318,7 +344,7 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
                   </div>
 
                   <div className="podium-score-pill">
-                    <span>{team.completedGames ? `Place: ${team.totalPlacement}` : "No score"}</span>
+                    <span>{team.completedGames ? `${team.roundWins ?? 0} game wins · ${team.totalPlacement} pts` : "No games scored yet"}</span>
                   </div>
 
                   <div className="podium-column">
@@ -391,7 +417,7 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
                       <th>Team</th>
                       <th>Members</th>
                       <th>Completed</th>
-                      <th>Total Place</th>
+                      <th>Result</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -412,13 +438,13 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
                             <strong className="team-cell-name">{row.name}</strong>
                           </td>
                           <td>
-                            <span className="muted members-list-txt">{row.members.join(", ") || "No members"}</span>
+                            <span className="muted members-list-txt">{row.members.join(", ") || "Not decided yet"}</span>
                           </td>
                           <td>
                             <span className="games-pill">{row.completedGames} / {totalGamesCount}</span>
                           </td>
                           <td>
-                            <strong className="total-score-txt">{row.completedGames ? row.totalPlacement : "-"}</strong>
+                            <strong className="total-score-txt">{row.completedGames ? `${row.roundWins ?? 0}W · ${row.totalPlacement} pts` : "-"}</strong>
                           </td>
                           <td>
                             <button className="expand-trigger-btn">
@@ -444,8 +470,8 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
                 <th>Team</th>
                 <th>Members</th>
                 <th>Completed</th>
-                <th>Total Place</th>
-                {games.map((game) => (
+                <th>Result</th>
+                {scoringGames.map((game) => (
                   <th key={game.id}>{game.name}</th>
                 ))}
               </tr>
@@ -485,21 +511,21 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
                         </div>
                       </td>
                       <td className="muted truncate-members">
-                        {row.members.join(", ") || "No members yet"}
+                        {row.members.join(", ") || "Not decided yet"}
                       </td>
                       <td>
                         <span className="completed-fraction">{row.completedGames} / {totalGamesCount}</span>
                       </td>
                       <td>
                         <strong className="total-placement-emphasis">
-                          {row.completedGames ? row.totalPlacement : "-"}
+                          {row.completedGames ? `${row.roundWins ?? 0}W · ${row.totalPlacement} pts` : "-"}
                         </strong>
                       </td>
                       {row.perGame.map((cell) => (
                         <td key={cell.gameId} className="placement-cell-val">
                           {cell.placement ? (
-                            <span className={`place-indicator place-${cell.placement}`}>
-                              {cell.placement}
+                            <span className={`place-indicator place-${cell.placement}`} title={`${cell.placement} placement point${cell.placement === 1 ? "" : "s"}`}>
+                              {cell.placement} pt
                             </span>
                           ) : (
                             <span className="place-pending">-</span>
@@ -511,7 +537,7 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
                     {/* Inline Expandable Row Details */}
                     {isExpanded && (
                       <tr className="expansion-row">
-                        <td colSpan={5 + games.length}>
+                        <td colSpan={5 + scoringGames.length}>
                           <div className="expanded-card-content slide-down-animation">
                             <div className="card-grid">
                               <div className="card-members">
@@ -523,7 +549,7 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
                                       {member}
                                     </span>
                                   ))}
-                                  {row.members.length === 0 && <span className="muted">No members registered yet.</span>}
+                                  {row.members.length === 0 && <span className="muted">Not decided yet.</span>}
                                 </div>
                               </div>
                               <div className="card-stats">

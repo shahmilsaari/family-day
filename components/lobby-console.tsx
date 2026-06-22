@@ -15,7 +15,7 @@ import {
 } from "@/app/actions";
 
 type TeamWithMembers = Team & { members: { name: string }[] };
-type GameWithScores = Game & { scores: { teamId: number; points: number }[] };
+type GameWithScores = Game & { scores: { teamId: number; round: number; points: number }[] };
 
 type LobbyConsoleProps = {
   eventId: number | null;
@@ -75,46 +75,74 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
   const handleDragEnd = async () => {
     setDraggedGameId(null);
     const orderedIds = orderedGames.map((g) => g.id);
-    await updateGameOrder(orderedIds);
-    notify("Game order updated");
+    const result = await updateGameOrder(orderedIds);
+    if (result?.error) {
+      notify(result.error, "error");
+    } else {
+      notify("Game order updated");
+    }
     router.refresh();
   };
 
   const handleTeamCreate = async (formData: FormData) => {
-    await createTeam(formData);
-    notify("Team registered");
+    const result = await createTeam(formData);
+    if (result?.error) {
+      notify(result.error, "error");
+    } else {
+      notify("Team registered");
+    }
     router.refresh();
   };
 
   const handleTeamUpdate = async (formData: FormData) => {
-    await updateTeam(formData);
-    notify("Team profile updated");
-    setEditingTeamId(null);
+    const result = await updateTeam(formData);
+    if (result?.error) {
+      notify(result.error, "error");
+    } else {
+      notify("Team profile updated");
+      setEditingTeamId(null);
+    }
     router.refresh();
   };
 
   const handleTeamDelete = async (formData: FormData) => {
-    await deleteTeam(formData);
-    notify("Team removed", "warning");
+    const result = await deleteTeam(formData);
+    if (result?.error) {
+      notify(result.error, "error");
+    } else {
+      notify("Team removed", "warning");
+    }
     router.refresh();
   };
 
   const handleGameCreate = async (formData: FormData) => {
-    await createGame(formData);
-    notify("Game created");
+    const result = await createGame(formData);
+    if (result?.error) {
+      notify(result.error, "error");
+    } else {
+      notify("Game created");
+    }
     router.refresh();
   };
 
   const handleGameUpdate = async (formData: FormData) => {
-    await updateGame(formData);
-    notify("Game updated");
-    setEditingGameId(null);
+    const result = await updateGame(formData);
+    if (result?.error) {
+      notify(result.error, "error");
+    } else {
+      notify("Game updated");
+      setEditingGameId(null);
+    }
     router.refresh();
   };
 
   const handleGameDelete = async (formData: FormData) => {
-    await deleteGame(formData);
-    notify("Game removed", "warning");
+    const result = await deleteGame(formData);
+    if (result?.error) {
+      notify(result.error, "error");
+    } else {
+      notify("Game removed", "warning");
+    }
     router.refresh();
   };
 
@@ -200,7 +228,7 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
                       </span>
                     ))}
                     {team.members.length === 0 ? (
-                      <span className="muted no-members-alert">No members registered</span>
+                      <span className="muted no-members-alert">Not decided yet</span>
                     ) : null}
                   </div>
 
@@ -234,9 +262,21 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
               <input id="game-name" name="name" placeholder="Egg Relay" disabled={!eventReady} />
             </div>
             <div className="field">
+              <label htmlFor="game-description">Description</label>
+              <textarea id="game-description" name="description" placeholder="Rules, setup, or notes for this game" disabled={!eventReady} />
+            </div>
+            <div className="field">
               <label htmlFor="order">Order</label>
               <input id="order" name="order" type="number" defaultValue={games.length + 1} disabled={!eventReady} />
             </div>
+            <div className="field">
+              <label htmlFor="rounds">Rounds</label>
+              <input id="rounds" name="rounds" type="number" min="1" defaultValue={1} disabled={!eventReady} />
+            </div>
+            <label className="checkbox-field">
+              <input name="includeInScore" type="checkbox" defaultChecked disabled={!eventReady} />
+              <span>Include in leaderboard score</span>
+            </label>
             <div className="actions form-save-actions">
               <button className="primary-btn" type="submit" disabled={!eventReady}>
                 Create Game
@@ -267,7 +307,8 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
                         </div>
                         <div>
                           <strong>{game.name}</strong>
-                          <span className="game-order-badge">Display index {game.order}</span>
+                          {game.description ? <small className="muted">{game.description}</small> : null}
+                          <span className="game-order-badge">Display index {game.order} · {game.rounds || 1} round{(game.rounds || 1) === 1 ? "" : "s"} · {game.includeInScore ? "Scored" : "Fun only"}</span>
                         </div>
                       </div>
                       <button
@@ -380,9 +421,21 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
                 <input id={`edit-game-name-${editingGame.id}`} name="name" defaultValue={editingGame.name} />
               </div>
               <div className="field">
+                <label htmlFor={`edit-game-description-${editingGame.id}`}>Description</label>
+                <textarea id={`edit-game-description-${editingGame.id}`} name="description" defaultValue={editingGame.description ?? ""} />
+              </div>
+              <div className="field">
                 <label htmlFor={`edit-game-order-${editingGame.id}`}>Order</label>
                 <input id={`edit-game-order-${editingGame.id}`} name="order" type="number" defaultValue={editingGame.order} />
               </div>
+              <div className="field">
+                <label htmlFor={`edit-game-rounds-${editingGame.id}`}>Rounds</label>
+                <input id={`edit-game-rounds-${editingGame.id}`} name="rounds" type="number" min="1" defaultValue={editingGame.rounds || 1} />
+              </div>
+              <label className="checkbox-field">
+                <input name="includeInScore" type="checkbox" defaultChecked={editingGame.includeInScore} />
+                <span>Include in leaderboard score</span>
+              </label>
               <div className="actions modal-save-btn">
                 <button className="primary-btn" type="submit">
                   Save Competition

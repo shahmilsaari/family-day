@@ -724,6 +724,24 @@ select {
   min-width: 180px;
 }
 
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  border: 1px solid rgba(8, 116, 67, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--text);
+  font-weight: 750;
+}
+
+.checkbox-field input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
 .sort-control span {
   color: var(--muted);
   font-size: 0.78rem;
@@ -809,12 +827,119 @@ select {
 
 .arena-panel {
   display: grid;
+  gap: 14px;
   padding: 16px;
   border: 1px solid rgba(8, 116, 67, 0.14);
   border-radius: 14px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(232, 250, 240, 0.58)),
     rgba(255, 255, 255, 0.58);
+}
+
+.round-command-center {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid rgba(8, 116, 67, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.round-command-center > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.round-command-center strong {
+  font-size: 1rem;
+}
+
+.round-step-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.round-chip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 10px;
+}
+
+.round-chip {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 6px 9px;
+  min-height: 74px;
+  border: 1px solid rgba(8, 116, 67, 0.14);
+  border-radius: 14px;
+  padding: 11px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.72);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.round-chip:hover,
+.round-chip.active {
+  transform: translateY(-1px);
+  border-color: rgba(8, 116, 67, 0.45);
+  box-shadow: 0 12px 26px rgba(8, 116, 67, 0.12);
+}
+
+.round-chip.active {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(221, 246, 231, 0.94));
+}
+
+.round-chip > span {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 999px;
+  font-weight: 900;
+  background: #ffdf72;
+  color: #7a5a00;
+}
+
+.round-chip.complete > span {
+  color: #ffffff;
+  background: var(--accent);
+}
+
+.round-chip.started > span {
+  color: #ffffff;
+  background: var(--accent-2);
+}
+
+.round-chip strong {
+  font-size: 0.92rem;
+}
+
+.round-chip small {
+  grid-column: 2;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+@media (max-width: 720px) {
+  .round-command-center {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .round-step-actions {
+    justify-content: stretch;
+  }
+
+  .round-step-actions button {
+    flex: 1;
+  }
 }
 
 .panel-enter {
@@ -1157,6 +1282,63 @@ select {
   display: grid;
   gap: 20px;
   width: 100%;
+}
+
+.scoring-explainer-card,
+.placement-score-note {
+  border: 1px solid rgba(8, 116, 67, 0.14);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 248, 220, 0.58));
+  box-shadow: 0 12px 28px rgba(8, 116, 67, 0.08);
+}
+
+.scoring-explainer-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px;
+}
+
+.scoring-explainer-card > div {
+  display: grid;
+  gap: 5px;
+}
+
+.scoring-explainer-card strong {
+  font-size: 1.05rem;
+}
+
+.scoring-explainer-card span,
+.scoring-explainer-card li {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.scoring-explainer-card ol {
+  display: grid;
+  gap: 4px;
+  min-width: 240px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.placement-score-note {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.placement-score-note strong {
+  color: var(--text);
+}
+
+@media (max-width: 720px) {
+  .scoring-explainer-card {
+    flex-direction: column;
+  }
 }
 
 /* Controls & Toolbar */
@@ -4249,6 +4431,19 @@ input:focus, textarea:focus, select:focus {
   opacity: 0.5;
   pointer-events: none;
   transform: none;
+}
+
+.auth-error-banner {
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(174, 38, 38, 0.28);
+  background: rgba(255, 235, 235, 0.72);
+  color: #9d2323;
+  font-size: 0.86rem;
+}
+
+.auth-error-banner strong {
+  font-weight: 700;
 }
 
 /* Responsive Grid collapses */

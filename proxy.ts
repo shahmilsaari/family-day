@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 const SESSION_COOKIE = "family_day_session";
 
-const protectedRoutes = ["/", "/dashboard", "/events", "/display", "/api/tentative-pdf"];
+// Routes that require authentication. The home page "/" and live display "/display"
+// are intentionally public so guests can see the landing and projector view.
+const protectedRoutes = ["/dashboard", "/events", "/api/tentative-pdf"];
 const authRoutes = ["/login", "/register"];
 
 function isProtectedPath(pathname: string) {
@@ -27,5 +29,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/dashboard/:path*", "/events/:path*", "/display/:path*", "/api/tentative-pdf/:path*", "/login", "/register"]
+  matcher: ["/dashboard/:path*", "/events/:path*", "/api/tentative-pdf/:path*", "/login", "/register"]
 };

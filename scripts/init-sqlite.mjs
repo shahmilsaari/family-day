@@ -62,7 +62,10 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     eventId INTEGER NOT NULL,
     name TEXT NOT NULL,
+    description TEXT,
+    includeInScore BOOLEAN NOT NULL DEFAULT 1,
     "order" INTEGER NOT NULL DEFAULT 0,
+    rounds INTEGER NOT NULL DEFAULT 1,
     createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (eventId) REFERENCES family_day_events(id) ON DELETE CASCADE,
@@ -89,13 +92,14 @@ db.exec(`
     eventId INTEGER NOT NULL,
     teamId INTEGER NOT NULL,
     gameId INTEGER NOT NULL,
+    round INTEGER NOT NULL DEFAULT 1,
     points INTEGER NOT NULL,
     createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (eventId) REFERENCES family_day_events(id) ON DELETE CASCADE,
     FOREIGN KEY (teamId) REFERENCES teams(id) ON DELETE CASCADE,
     FOREIGN KEY (gameId) REFERENCES games(id) ON DELETE CASCADE,
-    UNIQUE (teamId, gameId)
+    UNIQUE (teamId, gameId, round)
   );
 `);
 
@@ -165,6 +169,65 @@ if (!existingCols.includes("startDate")) {
 }
 if (!existingCols.includes("endDate")) {
   db.exec(`ALTER TABLE family_day_events ADD COLUMN endDate DATETIME;`);
+}
+
+const existingGameCols = db.prepare(`PRAGMA table_info(games)`).all().map(c => c.name);
+if (!existingGameCols.includes("description")) {
+  db.exec(`ALTER TABLE games ADD COLUMN description TEXT;`);
+}
+if (!existingGameCols.includes("includeInScore")) {
+  db.exec(`ALTER TABLE games ADD COLUMN includeInScore BOOLEAN NOT NULL DEFAULT 1;`);
+}
+if (!existingGameCols.includes("rounds")) {
+  db.exec(`ALTER TABLE games ADD COLUMN rounds INTEGER NOT NULL DEFAULT 1;`);
+}
+
+db.exec(`UPDATE games SET includeInScore = 1 WHERE includeInScore IS NULL;`);
+db.exec(`UPDATE games SET rounds = 1 WHERE rounds IS NULL OR rounds < 1;`);
+
+let existingScoreCols = db.prepare(`PRAGMA table_info(scores)`).all().map(c => c.name);
+if (!existingScoreCols.includes("round")) {
+  db.exec(`ALTER TABLE scores ADD COLUMN round INTEGER NOT NULL DEFAULT 1;`);
+  existingScoreCols = db.prepare(`PRAGMA table_info(scores)`).all().map(c => c.name);
+}
+
+db.exec(`UPDATE scores SET round = 1 WHERE round IS NULL OR round < 1;`);
+
+const scoreIndexes = db.prepare(`PRAGMA index_list(scores)`).all();
+const uniqueScoreColumns = scoreIndexes
+  .filter(index => index.unique)
+  .map(index => db.prepare(`PRAGMA index_info(${JSON.stringify(index.name)})`).all().map(col => col.name).join(","));
+const hasRoundUnique = uniqueScoreColumns.includes("teamId,gameId,round");
+const hasLegacyScoreUnique = uniqueScoreColumns.includes("teamId,gameId");
+
+if (!hasRoundUnique || hasLegacyScoreUnique) {
+  db.exec(`
+    PRAGMA foreign_keys = OFF;
+    DROP TABLE IF EXISTS scores_new;
+
+    CREATE TABLE scores_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      eventId INTEGER NOT NULL,
+      teamId INTEGER NOT NULL,
+      gameId INTEGER NOT NULL,
+      round INTEGER NOT NULL DEFAULT 1,
+      points INTEGER NOT NULL,
+      createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (eventId) REFERENCES family_day_events(id) ON DELETE CASCADE,
+      FOREIGN KEY (teamId) REFERENCES teams(id) ON DELETE CASCADE,
+      FOREIGN KEY (gameId) REFERENCES games(id) ON DELETE CASCADE,
+      UNIQUE (teamId, gameId, round)
+    );
+
+    INSERT OR IGNORE INTO scores_new (id, eventId, teamId, gameId, round, points, createdAt, updatedAt)
+    SELECT id, eventId, teamId, gameId, COALESCE(round, 1), points, createdAt, updatedAt
+    FROM scores;
+
+    DROP TABLE scores;
+    ALTER TABLE scores_new RENAME TO scores;
+    PRAGMA foreign_keys = ON;
+  `);
 }
 
 const existingScheduleCols = db.prepare(`PRAGMA table_info(tentative_schedules)`).all().map(c => c.name);

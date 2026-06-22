@@ -3,9 +3,16 @@ import { redirect } from "next/navigation";
 import { registerUser } from "@/app/auth-actions";
 import { getCurrentUser } from "@/lib/auth";
 
-export default async function RegisterPage() {
+type RegisterPageProps = {
+  searchParams: Promise<{ error?: string }>;
+};
+
+export default async function RegisterPage({ searchParams }: RegisterPageProps) {
   const user = await getCurrentUser();
   if (user) redirect("/dashboard");
+
+  const params = await searchParams;
+  const error = params.error ? decodeURIComponent(params.error) : null;
 
   return (
     <main className="auth-shell slide-up-animation">
@@ -13,6 +20,12 @@ export default async function RegisterPage() {
         <p className="eyebrow">Community Account</p>
         <h2>Create your workspace</h2>
         <p className="muted">Register to manage your own Family Day events, teams, games, and standings.</p>
+
+        {error && (
+          <div className="auth-error-banner" role="alert">
+            <strong>{error}</strong>
+          </div>
+        )}
 
         <form action={registerUser} className="form-grid interactive-form">
           <div className="field">

@@ -8,7 +8,7 @@ export type TimetableGroup<T extends Pick<TentativeSchedule, "id" | "scheduleDat
 
 export function formatScheduleDate(value: Date | null | undefined) {
   if (!value) return "No date assigned";
-  return value.toLocaleDateString("en-MY", {
+  return value.toLocaleDateString("en-GB", {
     weekday: "long",
     day: "numeric",
     month: "long",

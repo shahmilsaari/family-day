@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { clearGamePlacements, saveGamePlacements } from "@/app/actions";
 import { notify } from "@/components/toast-host";
@@ -16,6 +16,9 @@ type GamePlacementBoardProps = {
   eventId: number;
   gameId: number;
   gameName: string;
+  gameDescription?: string | null;
+  round: number;
+  totalRounds: number;
   teams: PlacementTeam[];
 };
 
@@ -57,19 +60,41 @@ export function GamePlacementBoard({
   eventId,
   gameId,
   gameName,
+  gameDescription,
+  round,
+  totalRounds,
   teams
 }: GamePlacementBoardProps) {
   const router = useRouter();
   const [orderedTeams, setOrderedTeams] = useState(teams);
   const [draggedTeamId, setDraggedTeamId] = useState<number | null>(null);
+  const teamSignature = useMemo(
+    () => teams.map((team) => `${team.id}:${team.placement ?? "pending"}`).join("|"),
+    [teams]
+  );
+  const lastTeamSignature = useRef(teamSignature);
+
+  useEffect(() => {
+    if (lastTeamSignature.current !== teamSignature) {
+      lastTeamSignature.current = teamSignature;
+      setOrderedTeams(teams);
+    }
+  }, [teams, teamSignature]);
+
   const [pendingAction, setPendingAction] = useState<"save" | "clear" | null>(null);
 
   const handleSavePlacements = async (formData: FormData) => {
     setPendingAction("save");
     try {
-      await saveGamePlacements(formData);
-      notify("Placements saved");
-      router.refresh();
+      const result = await saveGamePlacements(formData);
+      if (result?.error) {
+        notify(result.error, "error");
+      } else {
+        notify("Placements saved");
+        router.refresh();
+      }
+    } catch {
+      notify("An unexpected error occurred.", "error");
     } finally {
       setPendingAction(null);
     }
@@ -78,9 +103,15 @@ export function GamePlacementBoard({
   const handleClearPlacements = async (formData: FormData) => {
     setPendingAction("clear");
     try {
-      await clearGamePlacements(formData);
-      notify("Placements cleared", "warning");
-      router.refresh();
+      const result = await clearGamePlacements(formData);
+      if (result?.error) {
+        notify(result.error, "error");
+      } else {
+        notify("Placements cleared", "warning");
+        router.refresh();
+      }
+    } catch {
+      notify("An unexpected error occurred.", "error");
     } finally {
       setPendingAction(null);
     }
@@ -128,14 +159,20 @@ export function GamePlacementBoard({
     <article className="placement-board board-glass-panel slide-up-animation">
       <header className="placement-board-header dashboard-board-head">
         <div>
-          <p className="eyebrow">Scoring Deck</p>
+          <p className="eyebrow">Placement Points Deck</p>
           <h4>{gameName}</h4>
+          {gameDescription ? <p className="muted">{gameDescription}</p> : null}
+          <p className="muted">Round {round} of {totalRounds} · used to decide this game result</p>
         </div>
         <span className="teams-count-indicator">{orderedTeams.length} Teams</span>
       </header>
 
       {orderedTeams.length ? (
-        <ol className="drag-list sorting-deck-rail">
+        <>
+          <div className="placement-score-note">
+            <strong>Round rule:</strong> Top team gets 1 point, second gets 2, third gets 3. All rounds combine into one final game placement for the leaderboard.
+          </div>
+          <ol className="drag-list sorting-deck-rail">
           {orderedTeams.map((team, index) => {
             const isDragging = draggedTeamId === team.id;
             return (
@@ -143,10 +180,19 @@ export function GamePlacementBoard({
                 className={`drag-row sorting-deck-row ${isDragging ? "is-dragging" : ""}`}
                 draggable
                 key={team.id}
-                onDragStart={() => setDraggedTeamId(team.id)}
+                onDragStart={(event) => {
+                  event.dataTransfer.effectAllowed = "move";
+                  event.dataTransfer.setData("text/plain", String(team.id));
+                  setDraggedTeamId(team.id);
+                }}
                 onDragOver={(event) => {
                   event.preventDefault();
+                  event.dataTransfer.dropEffect = "move";
                   moveTeam(team.id);
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  setDraggedTeamId(null);
                 }}
                 onDragEnd={() => setDraggedTeamId(null)}
               >
@@ -158,7 +204,7 @@ export function GamePlacementBoard({
                 
                 <div className="sorting-row-text">
                   <span className="team-row-name">{team.name}</span>
-                  <small className="team-row-members truncate-members">{team.members.join(", ") || "No members registered"}</small>
+                  <small className="team-row-members truncate-members">{team.members.join(", ") || "Not decided yet"}</small>
                 </div>
 
                 <div className="placement-stepper" aria-label={`Move ${team.name}`}>
@@ -182,7 +228,8 @@ export function GamePlacementBoard({
               </li>
             );
           })}
-        </ol>
+          </ol>
+        </>
       ) : (
         <div className="empty-state placements-empty">
           <strong>No teams registered</strong>
@@ -195,25 +242,27 @@ export function GamePlacementBoard({
         <form action={handleSavePlacements}>
           <input type="hidden" name="eventId" value={eventId} />
           <input type="hidden" name="gameId" value={gameId} />
+          <input type="hidden" name="round" value={round} />
           <input type="hidden" name="orderedTeamIds" value={orderedTeams.map((team) => team.id).join(",")} />
           <button className="primary-btn save-deck-btn" type="submit" disabled={orderedTeams.length === 0 || pendingAction !== null}>
             <SaveIcon />
-            <span>{pendingAction === "save" ? "Saving..." : "Save Scores"}</span>
+            <span>{pendingAction === "save" ? "Saving..." : "Save Round Placements"}</span>
           </button>
         </form>
         
         <form
           action={handleClearPlacements}
           onSubmit={(event) => {
-            if (!window.confirm(`Clear placements for ${gameName}?`)) {
+            if (!window.confirm(`Clear placements for ${gameName} round ${round}?`)) {
               event.preventDefault();
             }
           }}
         >
           <input type="hidden" name="gameId" value={gameId} />
+          <input type="hidden" name="round" value={round} />
           <button className="danger-btn clear-deck-btn" type="submit" disabled={pendingAction !== null}>
             <TrashIcon />
-            <span>{pendingAction === "clear" ? "Clearing..." : "Clear Scores"}</span>
+            <span>{pendingAction === "clear" ? "Clearing..." : "Clear Round"}</span>
           </button>
         </form>
       </div>

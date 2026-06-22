@@ -12,21 +12,21 @@
     "db:seed": "node scripts/init-sqlite.mjs && node prisma/seed.js"
   },
   "dependencies": {
-    "@prisma/adapter-better-sqlite3": "latest",
-    "@prisma/client": "latest",
+    "@prisma/adapter-better-sqlite3": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "@types/pdfkit": "^0.17.6",
-    "better-sqlite3": "latest",
-    "next": "latest",
+    "better-sqlite3": "^12.10.1",
+    "next": "^16.2.9",
     "pdfkit": "^0.19.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@types/node": "latest",
+    "@types/node": "^25.9.3",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "prisma": "latest",
-    "typescript": "latest"
+    "prisma": "^7.8.0",
+    "typescript": "^5.7.0"
   },
   "prisma": {
     "seed": "node prisma/seed.js"

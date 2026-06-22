@@ -3,9 +3,16 @@ import { redirect } from "next/navigation";
 import { loginUser } from "@/app/auth-actions";
 import { getCurrentUser } from "@/lib/auth";
 
-export default async function LoginPage() {
+type LoginPageProps = {
+  searchParams: Promise<{ error?: string; next?: string }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
   const user = await getCurrentUser();
   if (user) redirect("/dashboard");
+
+  const params = await searchParams;
+  const error = params.error ? decodeURIComponent(params.error) : null;
 
   return (
     <main className="auth-shell slide-up-animation">
@@ -13,6 +20,12 @@ export default async function LoginPage() {
         <p className="eyebrow">Welcome Back</p>
         <h2>Login to your workspace</h2>
         <p className="muted">Only registered users can manage their own community events.</p>
+
+        {error && (
+          <div className="auth-error-banner" role="alert">
+            <strong>{error}</strong>
+          </div>
+        )}
 
         <form action={loginUser} className="form-grid interactive-form">
           <div className="field">

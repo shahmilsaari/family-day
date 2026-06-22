@@ -88,7 +88,7 @@ function getTimetableIcon(title: string) {
 
 function formatScheduleDate(value: Date | null | undefined) {
   if (!value) return "No date";
-  return value.toLocaleDateString("en-MY", {
+  return value.toLocaleDateString("en-GB", {
     weekday: "short",
     day: "numeric",
     month: "short",

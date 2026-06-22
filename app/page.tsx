@@ -72,7 +72,7 @@ export default async function HomePage() {
   const state = await loadDashboard();
 
   const formatDate = (d: Date | null | undefined) =>
-    d ? d.toLocaleDateString("en-MY", { weekday: "short", day: "numeric", month: "short", year: "numeric" }) : null;
+    d ? d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" }) : null;
 
   const startLabel = formatDate(state.event?.startDate);
   const endLabel = formatDate(state.event?.endDate);

@@ -40,6 +40,17 @@ If you want sample data:
 npm run db:seed
 ```
 
+The seed script creates a demo user with the following credentials:
+
+- **Email:** `demo@example.com`
+- **Password:** `demo1234`
+
+## Access control
+
+- `/` (landing page) and `/display` (live projector view) are **public**.
+- `/dashboard`, `/events`, and `/api/tentative-pdf` require authentication.
+- Unauthenticated visitors are redirected to `/login`.
+
 ## Database
 
 - The database lives in `dev.db`
