@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { AppShell } from "@/components/app-shell";
 import { ConfirmHost } from "@/components/confirm-dialog";
 import { SiteHeader } from "@/components/site-header";
 import { ToastHost } from "@/components/toast-host";
@@ -42,10 +43,13 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={plusJakarta.variable} style={{ fontFamily: "var(--font-sans)" }}>
-        <div className="page-shell">
-          <SiteHeader user={user ? { name: user.name, email: user.email } : null} events={events} />
+        <AppShell
+          header={
+            <SiteHeader user={user ? { name: user.name, email: user.email } : null} events={events} />
+          }
+        >
           {children}
-        </div>
+        </AppShell>
         <ToastHost />
         <ConfirmHost />
       </body>

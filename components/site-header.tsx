@@ -44,7 +44,7 @@ export function SiteHeader({ user, events }: SiteHeaderProps) {
   }
 
   const navItems = [
-    { href: "/", label: "Overview", icon: OverviewIcon },
+    { href: "/overview", label: "Overview", icon: OverviewIcon },
     { href: "/events", label: "Events", icon: EventsIcon },
     { href: "/dashboard", label: "Dashboard", icon: DashboardIcon },
     { href: "/display", label: "Live Display", icon: LiveDisplayIcon },
@@ -151,7 +151,7 @@ export function SiteHeader({ user, events }: SiteHeaderProps) {
                           ? "bg-brand-primary/10 text-brand-primary"
                           : "text-slate-600 hover:bg-slate-50"
                       }`}
-                      href={{ pathname: pathname === "/" ? "/dashboard" : pathname, query: { eventId: event.id } }}
+                      href={{ pathname: pathname === "/overview" ? "/dashboard" : pathname, query: { eventId: event.id } }}
                       key={event.id}
                       onClick={handleLinkClick}
                     >

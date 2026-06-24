@@ -377,9 +377,9 @@ export function DashboardView({ state }: { state: DashboardState }) {
 
       {/* Footer Back navigation link */}
       <div className="pt-8 mt-12 border-t border-slate-100 flex justify-between items-center text-xs font-bold text-slate-400">
-        <Link className="flex items-center gap-2 hover:text-brand-primary transition-colors" href="/">
+        <Link className="flex items-center gap-2 hover:text-brand-primary transition-colors" href="/overview">
           <ArrowLeftIcon width={14} height={14} />
-          Back to landing overview
+          Back to overview
         </Link>
         <span>Family Day Operations © {new Date().getFullYear()}</span>
       </div>

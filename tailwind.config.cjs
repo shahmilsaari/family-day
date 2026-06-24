@@ -54,6 +54,9 @@ module.exports = {
         "error": "#ba1a1a",
         "surface-container-highest": "#dee3e8",
         "background": "#f5faff",
+        "brand-coral": "#FB7185",
+        "brand-sky": "#38BDF8",
+        "brand-cream": "#FFFDF9",
         brand: {
           primary: '#38BDF8', // Sky Blue
           secondary: '#FB7185', // Warm Coral from template 1
