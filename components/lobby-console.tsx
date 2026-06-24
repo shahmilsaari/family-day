@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { Game, Team } from "@prisma/client";
+import { confirmDialog } from "@/components/confirm-dialog";
 import { notify } from "@/components/toast-host";
 import {
   createGame,
@@ -304,9 +305,22 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
                     <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
                       <form
                         action={handleTeamDelete}
-                        onSubmit={(event) => {
-                          if (!window.confirm(`Remove team ${team.name}? This will also remove related scores.`)) {
-                            event.preventDefault();
+                        onSubmit={async (event) => {
+                          const form = event.currentTarget;
+                          if (form.dataset.confirmed === "1") {
+                            delete form.dataset.confirmed;
+                            return;
+                          }
+                          event.preventDefault();
+                          const ok = await confirmDialog({
+                            title: "Remove team",
+                            message: `Remove team ${team.name}? This will also remove related scores.`,
+                            confirmLabel: "Remove Team",
+                            tone: "danger",
+                          });
+                          if (ok) {
+                            form.dataset.confirmed = "1";
+                            form.requestSubmit();
                           }
                         }}
                         className="w-full text-center"
@@ -482,9 +496,22 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
                     <div className="pt-3 border-t border-slate-50 flex justify-end">
                       <form
                         action={handleGameDelete}
-                        onSubmit={(event) => {
-                          if (!window.confirm(`Remove game ${game.name}? This will also remove its scores.`)) {
-                            event.preventDefault();
+                        onSubmit={async (event) => {
+                          const form = event.currentTarget;
+                          if (form.dataset.confirmed === "1") {
+                            delete form.dataset.confirmed;
+                            return;
+                          }
+                          event.preventDefault();
+                          const ok = await confirmDialog({
+                            title: "Remove game",
+                            message: `Remove game ${game.name}? This will also remove its scores.`,
+                            confirmLabel: "Remove Game",
+                            tone: "danger",
+                          });
+                          if (ok) {
+                            form.dataset.confirmed = "1";
+                            form.requestSubmit();
                           }
                         }}
                       >

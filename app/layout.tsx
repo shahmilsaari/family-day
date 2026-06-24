@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { ConfirmHost } from "@/components/confirm-dialog";
 import { SiteHeader } from "@/components/site-header";
 import { ToastHost } from "@/components/toast-host";
 import { getCurrentUser } from "@/lib/auth";
@@ -46,6 +47,7 @@ export default async function RootLayout({
           {children}
         </div>
         <ToastHost />
+        <ConfirmHost />
       </body>
     </html>
   );

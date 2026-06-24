@@ -8,6 +8,7 @@ import {
   deleteTentativeSchedule,
   updateTentativeSchedule,
 } from "@/app/actions";
+import { confirmDialog } from "@/components/confirm-dialog";
 import { RefreshActionForm } from "@/components/refresh-action-form";
 import {
   AwardIcon,
@@ -262,9 +263,22 @@ export function AgendaTimeline({
                   setEditingScheduleId(null);
                 }}
                 className="pt-2 border-t border-slate-100"
-                onSubmit={(event) => {
-                  if (!window.confirm("Remove this agenda slot? This cannot be undone.")) {
-                    event.preventDefault();
+                onSubmit={async (event) => {
+                  const form = event.currentTarget;
+                  if (form.dataset.confirmed === "1") {
+                    delete form.dataset.confirmed;
+                    return;
+                  }
+                  event.preventDefault();
+                  const ok = await confirmDialog({
+                    title: "Remove agenda slot",
+                    message: "Remove this agenda slot? This cannot be undone.",
+                    confirmLabel: "Remove Slot",
+                    tone: "danger",
+                  });
+                  if (ok) {
+                    form.dataset.confirmed = "1";
+                    form.requestSubmit();
                   }
                 }}
                 successMessage="Agenda slot removed"

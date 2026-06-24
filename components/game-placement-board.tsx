@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { clearGamePlacements, saveGamePlacements } from "@/app/actions";
+import { confirmDialog } from "@/components/confirm-dialog";
 import { notify } from "@/components/toast-host";
 import { DragHandleIcon, SaveIcon, TrashIcon, UsersIcon } from "@/components/ui/icons";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -257,9 +258,22 @@ export function GamePlacementBoard({
       <div className="mt-10 flex justify-end space-x-4">
         <form
           action={handleClearPlacements}
-          onSubmit={(event) => {
-            if (!window.confirm(`Clear placements for ${gameName} round ${round}?`)) {
-              event.preventDefault();
+          onSubmit={async (event) => {
+            const form = event.currentTarget;
+            if (form.dataset.confirmed === "1") {
+              delete form.dataset.confirmed;
+              return;
+            }
+            event.preventDefault();
+            const ok = await confirmDialog({
+              title: "Clear round placements",
+              message: `Clear placements for ${gameName} round ${round}?`,
+              confirmLabel: "Clear Round",
+              tone: "danger",
+            });
+            if (ok) {
+              form.dataset.confirmed = "1";
+              form.requestSubmit();
             }
           }}
         >
