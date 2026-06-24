@@ -9,7 +9,6 @@ import {
   ArrowRightIcon,
   CalendarIcon,
   ClockIcon,
-  FileTextIcon,
   GamepadIcon,
   LocationPinIcon,
   SparklesIcon,
@@ -45,278 +44,311 @@ export default async function HomePage() {
   const nextAgendaItem = state.timetable[0] ?? null;
 
   return (
-    <main className="hero-grid main-landing-shell slide-up-animation">
-      {/* Welcome & Portal Card */}
-      <section className="glass-panel panel-pad stack landing-card-welcome">
-        <div className="card-decoration-header">
-          <div className="icon-wrapper-sparkle">
-            <SparklesIcon width={24} height={24} />
-          </div>
-          <p className="eyebrow">Event Planning Hub</p>
-        </div>
-
-        <h2>Seamless Family Day setups, schedules & live standings</h2>
-        <p className="muted leading-description">
-          Welcome to the Family Day central operations hub. Coordinate the annual
-          schedule, manage team registration, set up custom events, and
-          drag-and-drop placements to calculate standings in real-time.
-        </p>
-
-        <div className="portal-features-grid">
-          <div className="feature-item-card">
-            <div className="icon-puck calendar">
-              <CalendarIcon width={20} height={20} />
-            </div>
-            <div>
-              <h5>Schedule Timetable</h5>
-              <p>Plan agenda slots, locations, and safety notes.</p>
-            </div>
-          </div>
-          <div className="feature-item-card">
-            <div className="icon-puck users">
-              <UsersIcon width={20} height={20} />
-            </div>
-            <div>
-              <h5>Team Registrations</h5>
-              <p>Group family members and track participation.</p>
-            </div>
-          </div>
-          <div className="feature-item-card">
-            <div className="icon-puck gamepad">
-              <GamepadIcon width={20} height={20} />
-            </div>
-            <div>
-              <h5>Live Scoreboard</h5>
-              <p>Drag placement boards to auto-rank active teams.</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="actions landing-actions">
-          <Link className="primary-btn pulse-glow-btn" href="/dashboard">
-            Open Control Dashboard
-            <ArrowRightIcon width={18} height={18} />
-          </Link>
-        </div>
-      </section>
-
-      {/* Active Setup Dashboard Card */}
-      <section className="glass-panel panel-pad stack landing-card-status">
-        <div className="status-header">
-          <h3>Active Event Workspace</h3>
-          {state.event ? (
-            <span className="live-status-indicator">
-              <span className="pulse-dot" /> Active
-            </span>
-          ) : (
-            <span className="live-status-indicator warning">
-              <span className="pulse-dot warning" /> Setup Required
-            </span>
-          )}
-        </div>
-
-        {state.event ? (
-          <div className="stats-showcase">
-            <div className="workspace-stat-block">
-              <span className="stat-label">Current Event</span>
-              <strong className="stat-val-text">{state.event.title}</strong>
-              <span className="stat-sub">{state.event.year} Edition</span>
-            </div>
-
-            <div className="workspace-stat-grid-mini overview-stat-grid">
-              <div className="stat-mini-pill">
-                <div className="pill-icon-wrap">
-                  <CalendarIcon width={18} height={18} />
-                </div>
-                <div>
-                  <span className="pill-lbl">Event Dates</span>
-                  <strong className="pill-val">{dateRangeLabel}</strong>
-                </div>
-              </div>
-
-              {state.event?.location && (
-                <div className="stat-mini-pill">
-                  <div className="pill-icon-wrap">
-                    <LocationPinIcon width={18} height={18} />
-                  </div>
-                  <div>
-                    <span className="pill-lbl">Venue</span>
-                    <strong className="pill-val">{state.event.location}</strong>
-                  </div>
-                </div>
-              )}
-
-              <div className="stat-mini-pill">
-                <div className="pill-icon-wrap">
-                  <UsersIcon width={18} height={18} />
-                </div>
-                <div>
-                  <span className="pill-lbl">Registered Teams</span>
-                  <strong className="pill-val">{state.totals.teams} Teams</strong>
-                </div>
-              </div>
-
-              <div className="stat-mini-pill">
-                <div className="pill-icon-wrap">
-                  <GamepadIcon width={18} height={18} />
-                </div>
-                <div>
-                  <span className="pill-lbl">Active Games</span>
-                  <strong className="pill-val">{state.totals.games} Games</strong>
-                </div>
-              </div>
-            </div>
-
-            <div className="overview-summary-table">
-              <div className="overview-summary-row">
-                <span>Agenda Slots</span>
-                <strong>{totalAgendaSlots}</strong>
-              </div>
-              <div className="overview-summary-row">
-                <span>Scheduled Days</span>
-                <strong>{scheduledDays}</strong>
-              </div>
-              <div className="overview-summary-row">
-                <span>Next Agenda</span>
-                <strong>
-                  {nextAgendaItem ? nextAgendaItem.title : "Not added yet"}
-                </strong>
-              </div>
-              <div className="overview-summary-row">
-                <span>Next Slot Time</span>
-                <strong>
-                  {nextAgendaItem
-                    ? `${formatScheduleDate(nextAgendaItem.scheduleDate)} · ${formatScheduleTime(nextAgendaItem.time)}`
-                    : "No schedule yet"}
-                </strong>
-              </div>
-            </div>
-
-            <div className="overview-leaderboard-banner">
-              <div className="banner-context">
-                <span>Top Leading Team</span>
-                <h4>
-                  {state.leaderboard[0]
-                    ? state.leaderboard[0].name
-                    : "No results recorded yet"}
-                </h4>
-              </div>
-              <TrophyIcon width={32} height={32} className="trophy-badge-icon" />
-            </div>
-          </div>
-        ) : (
-          <EmptyState
-            icon={<CalendarIcon width={48} height={48} />}
-            title="No active Family Day found"
-            description="Create the annual event record, register teams, and outline your tentative timetable."
-            action={
-              <Link className="secondary-btn" href="/dashboard">
-                Create Event Now
-              </Link>
-            }
-          />
-        )}
-      </section>
-
-      <section className="glass-panel panel-pad stack landing-timetable-panel">
-        <div className="landing-timetable-head">
+    <main className="max-w-7xl mx-auto px-4 md:px-0">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        
+        {/* Hero Section */}
+        <section className="lg:col-span-3 bg-white shadow-soft rounded-3xl border border-slate-100 p-8 flex flex-col justify-between" data-purpose="hero-section">
           <div>
-            <p className="eyebrow">Auto Timetable</p>
-            <h3>Family Day Run Sheet</h3>
-          </div>
-          <div className="landing-timetable-controls">
-            <div className="timetable-topline-metrics">
-              <span>{totalAgendaSlots} slots</span>
-              <span>
-                {scheduledDays} day{scheduledDays === 1 ? "" : "s"}
+            <div className="mb-6 flex items-center gap-3">
+              <div className="w-12 h-12 bg-sky-50 rounded-2xl flex items-center justify-center text-brand-primary">
+                <SparklesIcon width={24} height={24} />
+              </div>
+              <span className="inline-block text-[10px] font-bold text-brand-secondary bg-rose-50 px-3 py-1 rounded-full uppercase tracking-wider">
+                EVENT PLANNING HUB
               </span>
             </div>
-            <a
-              className={`ghost-link${state.event ? "" : " is-disabled"}`}
-              href={state.event ? "/api/tentative-pdf" : "#"}
-              aria-disabled={!state.event}
-              download={state.event ? "tentative-timetable.pdf" : undefined}
-              target={state.event ? "_blank" : undefined}
-              rel={state.event ? "noreferrer" : undefined}
+            
+            <h2 className="text-3xl md:text-4xl font-heading font-extrabold text-slate-800 leading-tight mb-6 max-w-lg">
+              Seamless Family Day setups, schedules & live standings
+            </h2>
+            
+            <p className="text-slate-500 text-sm md:text-base max-w-xl mb-10 leading-relaxed font-medium">
+              Welcome to the Family Day central operations hub. Coordinate the annual schedule, manage team registration, set up custom events, and drag-and-drop placements to calculate standings in real-time.
+            </p>
+
+            {/* Feature Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Schedule Card */}
+              <div className="p-5 bg-slate-50 rounded-2xl flex items-center gap-4 border border-slate-100 transition hover:bg-white hover:shadow-soft">
+                <div className="w-12 h-12 flex-shrink-0 bg-white shadow-sm rounded-xl flex items-center justify-center text-brand-primary">
+                  <CalendarIcon width={22} height={22} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-800 text-sm">Schedule Timetable</h3>
+                  <p className="text-[11px] text-slate-400 font-bold mt-0.5">Plan agenda slots, locations, and safety notes.</p>
+                </div>
+              </div>
+              
+              {/* Team Registration Card */}
+              <div className="p-5 bg-slate-50 rounded-2xl flex items-center gap-4 border border-slate-100 transition hover:bg-white hover:shadow-soft">
+                <div className="w-12 h-12 flex-shrink-0 bg-white shadow-sm rounded-xl flex items-center justify-center text-brand-secondary">
+                  <UsersIcon width={22} height={22} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-800 text-sm">Team Registrations</h3>
+                  <p className="text-[11px] text-slate-400 font-bold mt-0.5">Group family members and track participation.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end mt-10">
+            <Link 
+              href="/dashboard" 
+              className="bg-brand-secondary text-white font-bold py-3.5 px-8 rounded-full shadow-layered flex items-center gap-3 transition hover:scale-[1.02] hover:bg-rose-500"
             >
-              Export PDF
-            </a>
-            <Link className="ghost-link" href="/dashboard">
-              Manage Agenda
+              Open Control Dashboard
+              <ArrowRightIcon width={18} height={18} />
             </Link>
           </div>
-        </div>
+        </section>
 
-        {groupedTimetable.length ? (
-          <div className="root-timetable-groups">
-            {groupedTimetable.map((group, groupIndex) => (
-              <section key={group.key} className="root-timetable-day">
-                <div className="root-timetable-day-head">
-                  <div className="day-head-main">
-                    <div className="day-head-leading">
-                      <div className="day-head-icon">
-                        <CalendarIcon width={20} height={20} />
+        {/* Active Workspace Status Section */}
+        <section className="lg:col-span-2 bg-white shadow-soft rounded-3xl border border-slate-100 p-8 flex flex-col justify-between" data-purpose="active-workspace">
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-heading font-extrabold text-slate-800">Active Event Workspace</h3>
+              {state.event ? (
+                <span className="text-[10px] bg-green-50 text-green-600 font-bold px-3 py-1.5 rounded-full border border-green-100 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                  ACTIVE WORKSPACE
+                </span>
+              ) : (
+                <span className="text-[10px] bg-amber-50 text-amber-600 font-bold px-3 py-1.5 rounded-full border border-amber-100 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>
+                  SETUP REQUIRED
+                </span>
+              )}
+            </div>
+
+            <div className="h-[1px] bg-slate-100 mb-6"></div>
+
+            {state.event ? (
+              <div className="space-y-6">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Current Event</span>
+                  <strong className="text-xl font-heading font-extrabold text-slate-800 mt-1 block">{state.event.title}</strong>
+                  <span className="text-xs font-bold text-slate-400 mt-0.5 block">{state.event.year} Edition</span>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-100 rounded-2xl">
+                    <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-slate-400 shadow-sm">
+                      <CalendarIcon width={16} height={16} />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 block uppercase">Event Dates</span>
+                      <strong className="text-xs font-bold text-slate-700">{dateRangeLabel}</strong>
+                    </div>
+                  </div>
+
+                  {state.event.location && (
+                    <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-100 rounded-2xl">
+                      <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-slate-400 shadow-sm">
+                        <LocationPinIcon width={16} height={16} />
                       </div>
-                      <div className="day-head-copy">
-                        <span className="day-head-kicker">Schedule Day</span>
-                        <strong>{group.label}</strong>
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 block uppercase">Venue</span>
+                        <strong className="text-xs font-bold text-slate-700">{state.event.location}</strong>
                       </div>
                     </div>
-                    <div className="day-head-trailing">
-                      <span>
-                        {group.items.length} slot
-                        {group.items.length > 1 ? "s" : ""}
-                      </span>
-                      <b className="day-count-badge">Day {groupIndex + 1}</b>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-100 rounded-2xl">
+                      <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-slate-400 shadow-sm">
+                        <UsersIcon width={16} height={16} />
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 block uppercase">Teams</span>
+                        <strong className="text-xs font-bold text-slate-700">{state.totals.teams} Teams</strong>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-100 rounded-2xl">
+                      <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-slate-400 shadow-sm">
+                        <GamepadIcon width={16} height={16} />
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 block uppercase">Games</span>
+                        <strong className="text-xs font-bold text-slate-700">{state.totals.games} Games</strong>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="root-timetable-table-wrap">
-                  <table className="root-timetable-table">
-                    <colgroup>
-                      <col className="col-slot" />
-                      <col className="col-time" />
-                      <col className="col-activity" />
-                    </colgroup>
-                    <thead>
-                      <tr>
-                        <th>Slot</th>
-                        <th>Time</th>
-                        <th>Activity</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {group.items.map((item, itemIndex) => (
-                        <tr key={item.id}>
-                          <td className="slot-cell">
-                            {String(itemIndex + 1).padStart(2, "0")}
-                          </td>
-                          <td className="time-cell">
-                            <span>
-                              <ClockIcon width={18} height={18} />
-                            </span>
-                            {formatScheduleTime(item.time)}
-                          </td>
-                          <td className="activity-cell">
-                            <strong>{item.title}</strong>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="p-4 border border-slate-100 rounded-2xl space-y-2">
+                  <div className="flex justify-between items-center text-xs font-semibold">
+                    <span className="text-slate-400">Agenda Slots</span>
+                    <strong className="text-slate-800">{totalAgendaSlots} slots</strong>
+                  </div>
+                  <div className="flex justify-between items-center text-xs font-semibold">
+                    <span className="text-slate-400">Scheduled Days</span>
+                    <strong className="text-slate-800">{scheduledDays} days</strong>
+                  </div>
+                  {nextAgendaItem && (
+                    <div className="flex justify-between items-center text-xs font-semibold pt-1 border-t border-slate-50">
+                      <span className="text-slate-400">Next Slot</span>
+                      <strong className="text-brand-primary">{nextAgendaItem.title} ({formatScheduleTime(nextAgendaItem.time)})</strong>
+                    </div>
+                  )}
                 </div>
-              </section>
-            ))}
+
+                <div className="bg-brand-primary/5 border border-brand-primary/10 rounded-2xl p-4 flex items-center justify-between">
+                  <div>
+                    <span className="text-[9px] font-bold text-brand-primary uppercase tracking-wider block">Top Leading Team</span>
+                    <h4 className="font-heading font-extrabold text-slate-800 text-sm mt-0.5">
+                      {state.leaderboard[0] ? state.leaderboard[0].name : "No results recorded yet"}
+                    </h4>
+                  </div>
+                  <TrophyIcon width={24} height={24} className="text-amber-500" />
+                </div>
+              </div>
+            ) : (
+              <div className="p-8 flex flex-col items-center justify-center text-center space-y-4 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200">
+                <div className="w-16 h-16 bg-sky-50 rounded-2xl flex items-center justify-center text-brand-primary shadow-sm">
+                  <CalendarIcon width={32} height={32} />
+                </div>
+                <h4 className="text-base font-heading font-bold text-slate-800">No active Family Day found</h4>
+                <p className="text-slate-400 text-xs font-medium max-w-[200px] leading-relaxed">
+                  Create the annual event record, register teams, and outline your tentative timetable.
+                </p>
+                <Link 
+                  href="/dashboard" 
+                  className="bg-white border border-slate-200 text-slate-700 px-6 py-2 rounded-full font-bold text-xs shadow-soft hover:shadow-md transition"
+                >
+                  Create Event Now
+                </Link>
+              </div>
+            )}
           </div>
-        ) : (
-          <EmptyState
-            icon={<ClockIcon width={48} height={48} />}
-            title="No timetable generated yet"
-            description="Add dated agenda slots in the dashboard and the homepage timetable will generate automatically."
-          />
-        )}
-      </section>
+        </section>
+
+        {/* Timetable / Run Sheet Section */}
+        <section className="lg:col-span-5 bg-white shadow-soft rounded-3xl border border-slate-100 p-8" data-purpose="run-sheet">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+            <div>
+              <span className="inline-block text-[10px] font-bold text-brand-primary bg-sky-50 px-3 py-1 rounded-full uppercase tracking-wider">
+                AUTO TIMETABLE
+              </span>
+              <h3 className="text-2xl font-heading font-extrabold mt-2 text-slate-800">Family Day Run Sheet</h3>
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex gap-2">
+                <span className="px-4 py-2 bg-slate-50 text-slate-500 text-xs font-bold rounded-full border border-slate-100">
+                  {totalAgendaSlots} slot{totalAgendaSlots === 1 ? "" : "s"}
+                </span>
+                <span className="px-4 py-2 bg-slate-50 text-slate-500 text-xs font-bold rounded-full border border-slate-100">
+                  {scheduledDays} day{scheduledDays === 1 ? "" : "s"}
+                </span>
+              </div>
+              
+              <a
+                className={`px-5 py-2.5 bg-white border border-slate-200 text-slate-500 hover:text-slate-700 font-bold rounded-full text-xs transition shadow-sm${
+                  state.event ? "" : " opacity-50 cursor-not-allowed pointer-events-none"
+                }`}
+                href={state.event ? `/api/tentative-pdf?eventId=${state.event.id}` : "#"}
+                aria-disabled={!state.event}
+                download={state.event ? "tentative-timetable.pdf" : undefined}
+                target={state.event ? "_blank" : undefined}
+                rel={state.event ? "noreferrer" : undefined}
+              >
+                Export PDF
+              </a>
+              
+              <Link 
+                className="px-5 py-2.5 bg-brand-dark text-white rounded-full font-bold text-xs shadow-md hover:bg-slate-800 transition" 
+                href="/dashboard"
+              >
+                Manage Agenda
+              </Link>
+            </div>
+          </div>
+
+          {groupedTimetable.length ? (
+            <div className="space-y-8">
+              {groupedTimetable.map((group, groupIndex) => (
+                <div key={group.key} className="border border-slate-100 rounded-2xl overflow-hidden bg-slate-50/20 shadow-sm">
+                  {/* Day Header */}
+                  <div className="bg-white border-b border-slate-100 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-sky-50 rounded-xl flex items-center justify-center text-brand-primary">
+                        <CalendarIcon width={18} height={18} />
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Schedule Day</span>
+                        <strong className="text-sm font-bold text-slate-800">{group.label}</strong>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between md:justify-end gap-3 text-xs font-bold">
+                      <span className="text-slate-400">
+                        {group.items.length} slot{group.items.length === 1 ? "" : "s"}
+                      </span>
+                      <span className="bg-brand-primary/10 text-brand-primary px-3 py-1 rounded-full text-[10px]">
+                        Day {groupIndex + 1}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Day Table */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-100 bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          <th className="px-6 py-3 w-20">Slot</th>
+                          <th className="px-6 py-3 w-40">Time</th>
+                          <th className="px-6 py-3">Activity</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 bg-white">
+                        {group.items.map((item, itemIndex) => (
+                          <tr key={item.id} className="hover:bg-slate-50/50 transition">
+                            <td className="px-6 py-4 text-xs font-bold text-slate-400">
+                              {String(itemIndex + 1).padStart(2, "0")}
+                            </td>
+                            <td className="px-6 py-4 text-xs font-bold text-slate-700 flex items-center gap-2">
+                              <span className="text-slate-300">
+                                <ClockIcon width={14} height={14} />
+                              </span>
+                              {formatScheduleTime(item.time)}
+                            </td>
+                            <td className="px-6 py-4 text-xs">
+                              <strong className="text-slate-800 text-sm block font-semibold">{item.title}</strong>
+                              {(item.location || item.pic || item.notes) && (
+                                <div className="mt-1 flex flex-wrap gap-2 text-[10px] text-slate-400 font-bold">
+                                  {item.location && <span>📍 {item.location}</span>}
+                                  {item.pic && <span>👤 PIC: {item.pic}</span>}
+                                  {item.notes && <span className="italic">Note: {item.notes}</span>}
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-16 flex flex-col items-center justify-center text-center space-y-4 bg-slate-50/20 rounded-2xl border-2 border-dashed border-slate-100 relative overflow-hidden">
+              <div className="absolute top-6 left-6 w-10 h-10 bg-brand-primary/10 text-brand-primary rounded-xl flex items-center justify-center font-extrabold text-xs shadow-sm select-none">
+                N
+              </div>
+              <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center text-brand-secondary shadow-sm">
+                <ClockIcon width={28} height={28} />
+              </div>
+              <h4 className="text-base font-heading font-bold text-slate-800">No timetable generated yet</h4>
+              <p className="text-slate-400 text-xs font-medium max-w-sm leading-relaxed">
+                Add dated agenda slots in the dashboard and the homepage timetable will generate automatically.
+              </p>
+            </div>
+          )}
+        </section>
+      </div>
     </main>
   );
 }

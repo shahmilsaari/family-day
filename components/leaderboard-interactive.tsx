@@ -47,11 +47,11 @@ function ConfettiEffect() {
   }, []);
 
   return (
-    <div className="confetti-overlay">
+    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
       {particles.map((p) => (
         <div
           key={p.id}
-          className="confetti-piece"
+          className="absolute w-2 h-2 rounded-sm animate-confetti"
           style={{
             left: `${p.left}%`,
             backgroundColor: p.color,
@@ -60,6 +60,21 @@ function ConfettiEffect() {
           }}
         />
       ))}
+      <style jsx global>{`
+        @keyframes confetti-fall {
+          0% {
+            top: -10%;
+            transform: translateY(0) rotate(0deg);
+          }
+          100% {
+            top: 110%;
+            transform: translateY(100vh) rotate(360deg);
+          }
+        }
+        .animate-confetti {
+          animation: confetti-fall 3.5s linear infinite;
+        }
+      `}</style>
     </div>
   );
 }
@@ -151,49 +166,62 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
   };
 
   return (
-    <div className="leaderboard-interactive-container">
+    <div className="relative">
       {showConfetti && <ConfettiEffect />}
 
-      <div className="scoring-explainer-card">
-        <div>
-          <p className="eyebrow">How Victory Is Calculated</p>
-          <strong>Leaderboard is scored per game, not per round.</strong>
-          <span>
-            Rounds decide the result inside each game. Then each game awards points by placement: 1st place earns the most
-            (equal to the number of teams), 2nd earns one less, and so on. Highest total points wins.
+      {/* Explainer Card */}
+      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 mb-8 text-xs font-bold text-slate-500 grid grid-cols-1 md:grid-cols-12 gap-6 leading-relaxed">
+        <div className="md:col-span-8 space-y-1.5">
+          <p className="text-[10px] font-extrabold text-brand-primary uppercase tracking-wider">How Victory Is Calculated</p>
+          <strong className="text-slate-800 font-bold block text-sm">Leaderboard scores are finalized per game.</strong>
+          <span className="block font-medium">
+            Rounds determine game standings. Then, points are distributed based on game placements (highest rank gets points equal to the number of teams). The team with the highest total points wins.
           </span>
         </div>
-        <ol>
-          <li>Highest total points</li>
-          <li>Most game wins</li>
-          <li>Most 2nd places, then 3rd places</li>
-          <li>Most completed games</li>
-        </ol>
+        <div className="md:col-span-4 bg-white border border-slate-150 p-4 rounded-xl space-y-1">
+          <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-1 mb-1">Tie-breaker Priority</p>
+          <ol className="list-decimal pl-4 space-y-0.5 text-[10px] font-bold text-slate-600">
+            <li>Highest total score points</li>
+            <li>Most 1st places (game wins)</li>
+            <li>Most 2nd places, then 3rd places</li>
+            <li>Most completed games scored</li>
+          </ol>
+        </div>
       </div>
 
-      <div className="leaderboard-controls">
-        <div className="search-box">
-          <SearchIcon className="search-icon" width={18} height={18} />
+      {/* Controls Bar */}
+      <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 mb-8">
+        
+        {/* Search */}
+        <div className="relative flex-1 max-w-md w-full">
+          <span className="absolute left-3.5 top-3 text-slate-350">
+            <SearchIcon width={16} height={16} />
+          </span>
           <input
             type="text"
             placeholder="Search team or member..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 pl-10 pr-8 py-2.5 text-xs font-bold focus:outline-none focus:border-brand-primary bg-white text-slate-850"
           />
           {searchQuery && (
-            <button className="clear-search" onClick={() => setSearchQuery("")}>
+            <button 
+              className="absolute right-3.5 top-2.5 text-slate-400 hover:text-slate-600 font-bold text-sm w-5 h-5 flex items-center justify-center rounded-full hover:bg-slate-100 transition"
+              onClick={() => setSearchQuery("")}
+            >
               ×
             </button>
           )}
         </div>
 
-        <div className="control-groups">
-          <div className="sort-group">
-            <span className="control-label">Sort By:</span>
+        {/* Sort & Toggle */}
+        <div className="flex items-center gap-4 justify-between md:justify-end">
+          <div className="flex items-center space-x-2">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Sort By:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as "rank" | "completed" | "name")}
-              className="select-dropdown"
+              className="bg-white border border-slate-200 text-xs font-bold py-1.5 px-3 rounded-xl text-slate-650 focus:outline-none"
             >
               <option value="rank">Current Rank</option>
               <option value="completed">Completed Games</option>
@@ -201,37 +229,39 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
             </select>
           </div>
 
-          <div className="view-toggle">
+          <div className="bg-slate-100 p-0.5 rounded-xl flex items-center select-none">
             <button
-              className={`toggle-btn ${viewMode === "podium" ? "active" : ""}`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 transition-all ${
+                viewMode === "podium" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              }`}
               onClick={() => {
                 setViewMode("podium");
                 setExpandedTeamId(null);
               }}
-              title="Podium View"
-              aria-label="Podium View"
               type="button"
             >
-              <PodiumIcon width={18} height={18} />
+              <PodiumIcon width={14} height={14} />
               <span>Podium</span>
             </button>
+            
             <button
-              className={`toggle-btn ${viewMode === "table" ? "active" : ""}`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 transition-all ${
+                viewMode === "table" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              }`}
               onClick={() => {
                 setViewMode("table");
                 setExpandedTeamId(null);
               }}
-              title="Table View"
-              aria-label="Table View"
               type="button"
             >
-              <TableIcon width={18} height={18} />
+              <TableIcon width={14} height={14} />
               <span>Table</span>
             </button>
           </div>
         </div>
       </div>
 
+      {/* Main View Area */}
       {processedLeaderboard.length === 0 ? (
         <EmptyState
           compact
@@ -240,8 +270,10 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
           description="Try adjusting your search criteria."
         />
       ) : viewMode === "podium" && !searchQuery ? (
-        <div className="podium-view-wrapper">
-          <div className="podium-container">
+        /* Podium View */
+        <div className="space-y-8 animate-fadeIn">
+          
+          <div className="flex flex-col md:flex-row items-end justify-center gap-6 md:gap-4 pt-10 pb-6 select-none max-w-3xl mx-auto">
             {podiumTeams.map(({ rank, team }) => {
               const originalRank = leaderboard.findIndex((item) => item.id === team.id) + 1;
               const isFirst = originalRank === 1;
@@ -255,9 +287,13 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
               return (
                 <div
                   key={team.id}
-                  className={`podium-card podium-rank-${originalRank} ${isExpanded ? "expanded" : ""} ${
-                    isFirst ? "champion-glow" : ""
-                  }`}
+                  className={`w-full md:w-1/3 bg-white border rounded-[28px] p-6 flex flex-col justify-between transition-all cursor-pointer relative ${
+                    isFirst
+                      ? "border-amber-300 bg-amber-50/10 shadow-soft md:order-2 md:-translate-y-4 ring-2 ring-amber-400/20"
+                      : isSecond
+                      ? "border-slate-200 shadow-sm md:order-1"
+                      : "border-slate-200 shadow-sm md:order-3"
+                  } ${isExpanded ? "ring-2 ring-brand-primary" : ""}`}
                   onClick={() => toggleRow(team.id)}
                   role="button"
                   tabIndex={0}
@@ -265,41 +301,44 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
                     if (e.key === "Enter" || e.key === " ") toggleRow(team.id);
                   }}
                 >
-                  <div className="podium-badge">
-                    {isFirst ? (
-                      <TrophyIcon className="trophy-animate" width={28} height={28} color="#d4a017" />
-                    ) : isSecond ? (
-                      <MedalIcon color="#94a3b8" width={26} height={26} />
-                    ) : (
-                      <MedalIcon color="#b45309" width={26} height={26} />
-                    )}
-                    <span className="rank-num">{originalRank}</span>
+                  {/* Rank Badging */}
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">
+                      {isFirst ? "🏆 CHAMPION" : isSecond ? "🥈 2ND PLACE" : "🥉 3RD PLACE"}
+                    </span>
+                    <span className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm ${
+                      isFirst ? "bg-amber-100 text-amber-600" : isSecond ? "bg-slate-100 text-slate-600" : "bg-orange-100 text-orange-700"
+                    }`}>
+                      {originalRank}
+                    </span>
                   </div>
 
-                  <div className="podium-team-info">
-                    <h4>{team.name}</h4>
-                    <p className="members-summary">{team.members.length} members</p>
+                  <div className="space-y-1 mb-6">
+                    <h4 className="font-extrabold text-slate-800 text-base md:text-lg truncate">{team.name}</h4>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">{team.members.length} members</p>
                   </div>
 
-                  <div className="podium-score-pill">
+                  {/* Score Pill */}
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3 flex justify-between items-center text-xs font-bold text-slate-700 mb-6">
+                    <span className="text-[9px] text-slate-400 uppercase">Total Result</span>
                     <span>
                       {team.completedGames
-                        ? `${team.totalScore} pts · ${team.roundWins ?? 0} game wins`
-                        : "No games scored yet"}
+                        ? `${team.totalScore} pts · ${team.roundWins ?? 0}W`
+                        : "Not scored"}
                     </span>
                   </div>
 
-                  <div className="podium-column" data-rank={originalRank}>
-                    <span className="podium-label">
-                      {isFirst ? "CHAMPION" : isSecond ? "2nd" : "3rd"}
-                    </span>
-                    <div className="podium-mini-progress">
-                      <div className="progress-track">
-                        <div className="progress-fill" style={{ width: `${progressPercentage}%` }} />
-                      </div>
-                      <span className="progress-txt">
-                        {team.completedGames}/{totalGamesCount} Games
-                      </span>
+                  {/* Progress Bar */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-[9px] font-bold text-slate-400 uppercase">
+                      <span>Progress</span>
+                      <span>{team.completedGames}/{totalGamesCount} Games</span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                      <div
+                        className="bg-brand-primary h-full transition-all duration-300"
+                        style={{ width: `${progressPercentage}%` }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -307,45 +346,62 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
             })}
           </div>
 
+          {/* Details Drawer */}
           {expandedTeamId !== null &&
             leaderboard.some((t) => t.id === expandedTeamId && leaderboard.indexOf(t) < 3) &&
             (() => {
               const team = leaderboard.find((t) => t.id === expandedTeamId)!;
-              const originalRank = leaderboard.findIndex((item) => item.id === team.id) + 1;
               return (
-                <div className="podium-detail-drawer slide-down-animation">
-                  <div className="detail-header">
-                    <h3>
-                      {team.name} Detailed Stats
-                    </h3>
-                    <button className="close-btn" onClick={() => setExpandedTeamId(null)} type="button">
+                <div className="bg-slate-50 border border-slate-100 rounded-3xl p-6 md:p-8 animate-fadeIn space-y-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="bg-brand-primary/10 text-brand-primary text-[9px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                        Stats Details
+                      </span>
+                      <h3 className="text-lg font-extrabold text-slate-800 mt-2 font-heading">
+                        {team.name} Breakdown
+                      </h3>
+                    </div>
+                    <button 
+                      className="text-slate-400 hover:text-slate-600 font-bold text-lg p-1"
+                      onClick={() => setExpandedTeamId(null)} 
+                      type="button"
+                    >
                       ×
                     </button>
                   </div>
-                  <div className="detail-body-grid">
-                    <div className="detail-members-column">
-                      <h5>Team Members ({team.members.length})</h5>
-                      <div className="members-chips">
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                      <h5 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Team Members ({team.members.length})</h5>
+                      <div className="flex flex-wrap gap-2">
                         {team.members.map((member, i) => (
-                          <span className="chip" key={i}>
-                            <span className="avatar">{member.charAt(0).toUpperCase()}</span>
+                          <span className="inline-flex items-center gap-1.5 bg-white border border-slate-100 px-3.5 py-1.5 rounded-full text-xs font-bold text-slate-650" key={i}>
+                            <span className="w-4 h-4 rounded-full bg-slate-100 text-[10px] font-black text-center text-slate-500 flex items-center justify-center select-none uppercase">
+                              {member.charAt(0)}
+                            </span>
                             {member}
                           </span>
                         ))}
                       </div>
                     </div>
-                    <div className="detail-games-column">
-                      <h5>Game Breakdown</h5>
-                      <div className="games-grid">
+                    
+                    <div>
+                      <h5 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Game-by-Game Placements</h5>
+                      <div className="grid grid-cols-2 gap-3">
                         {team.perGame.map((g) => (
                           <div
-                            className={`game-mini-card ${g.placement ? "completed" : "pending"}`}
+                            className={`p-3 rounded-xl border flex flex-col gap-1 ${
+                              g.placement
+                                ? "bg-white border-slate-100"
+                                : "bg-slate-50/20 border-slate-100 opacity-60"
+                            }`}
                             key={g.gameId}
                           >
-                            <span className="game-name">{g.gameName}</span>
-                            <span className={`game-place ${g.placement === 1 ? "gold-text" : ""}`}>
-                              {placementLabel(g.placement)}
-                            </span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase truncate">{g.gameName}</span>
+                            <strong className={`text-xs font-bold ${g.placement === 1 ? "text-amber-500" : "text-slate-700"}`}>
+                              {g.placement ? `${placementLabel(g.placement)} (${g.points} pts)` : "Pending"}
+                            </strong>
                           </div>
                         ))}
                       </div>
@@ -355,209 +411,195 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
               );
             })()}
 
+          {/* Non-podium flat list */}
           {nonPodiumTeams.length > 0 && (
-            <div className="non-podium-section">
-              <h5 className="sub-heading">Standings</h5>
-              <div className="table-wrap">
-                <table className="leaderboard-table-flat">
-                  <thead>
-                    <tr>
-                      <th>Rank</th>
-                      <th>Team</th>
-                      <th>Members</th>
-                      <th>Completed</th>
-                      <th>Result</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {nonPodiumTeams.map((row) => {
-                      const originalRank = leaderboard.findIndex((item) => item.id === row.id) + 1;
-                      const isExpanded = expandedTeamId === row.id;
-                      return (
-                        <tr
-                          key={row.id}
-                          className={`leaderboard-tr ${isExpanded ? "active-row" : ""}`}
-                          onClick={() => toggleRow(row.id)}
-                        >
-                          <td>
-                            <span className="flat-rank-badge">{originalRank}</span>
-                          </td>
-                          <td>
-                            <strong className="team-cell-name">{row.name}</strong>
-                          </td>
-                          <td>
-                            <span className="muted members-list-txt">
-                              {row.members.join(", ") || "Not decided yet"}
-                            </span>
-                          </td>
-                          <td>
-                            <span className="games-pill">
-                              {row.completedGames} / {totalGamesCount}
-                            </span>
-                          </td>
-                          <td>
-                            <strong className="total-score-txt">
-                              {row.completedGames ? `${row.totalScore} pts · ${row.roundWins ?? 0}W` : "-"}
-                            </strong>
-                          </td>
-                          <td>
-                            <button className="expand-trigger-btn" type="button">
-                              <ChevronDownIcon className={isExpanded ? "rotated" : ""} width={16} height={16} />
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+            <div className="pt-6 border-t border-slate-50">
+              <h5 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-4">Remaining Standings</h5>
+              <div className="border border-slate-100 rounded-3xl overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                        <th className="px-6 py-3.5 w-20">Rank</th>
+                        <th className="px-6 py-3.5">Team</th>
+                        <th className="px-6 py-3.5">Members</th>
+                        <th className="px-6 py-3.5 w-32">Completed</th>
+                        <th className="px-6 py-3.5 w-40">Result</th>
+                        <th className="px-6 py-3.5 w-16 text-center">Detail</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 bg-white">
+                      {nonPodiumTeams.map((row) => {
+                        const originalRank = leaderboard.findIndex((item) => item.id === row.id) + 1;
+                        const isExpanded = expandedTeamId === row.id;
+                        return (
+                          <Fragment key={row.id}>
+                            <tr
+                              className={`hover:bg-slate-50/50 transition cursor-pointer ${isExpanded ? "bg-slate-50/70" : ""}`}
+                              onClick={() => toggleRow(row.id)}
+                            >
+                              <td className="px-6 py-4 text-xs font-bold text-slate-400">
+                                <span className="bg-slate-100 text-slate-600 w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px]">
+                                  {originalRank}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-xs font-bold text-slate-800">
+                                {row.name}
+                              </td>
+                              <td className="px-6 py-4 text-xs text-slate-400 font-bold truncate max-w-[200px]">
+                                {row.members.join(", ") || "Not decided yet"}
+                              </td>
+                              <td className="px-6 py-4 text-xs text-slate-500 font-bold">
+                                {row.completedGames} / {totalGamesCount}
+                              </td>
+                              <td className="px-6 py-4 text-xs font-extrabold text-slate-850">
+                                {row.completedGames ? `${row.totalScore} pts · ${row.roundWins ?? 0}W` : "-"}
+                              </td>
+                              <td className="px-6 py-4 text-center">
+                                <button className="text-slate-450 hover:text-slate-700 font-bold" type="button">
+                                  <ChevronDownIcon className={`w-4 h-4 transform transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                                </button>
+                              </td>
+                            </tr>
+                            
+                            {isExpanded && (
+                              <tr className="bg-slate-50/30">
+                                <td colSpan={6} className="px-8 py-6">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn">
+                                    <div>
+                                      <h6 className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Team Members ({row.members.length})</h6>
+                                      <div className="flex flex-wrap gap-1.5">
+                                        {row.members.map((member, idx) => (
+                                          <span key={idx} className="bg-white border border-slate-100 text-[11px] font-bold text-slate-600 px-3 py-1 rounded-full">
+                                            {member}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <h6 className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Placements breakdown</h6>
+                                      <div className="grid grid-cols-2 gap-2">
+                                        {row.perGame.map((g) => (
+                                          <div key={g.gameId} className="flex justify-between items-center text-[11px] font-bold bg-white p-2 border border-slate-100 rounded-lg">
+                                            <span className="text-slate-400 truncate max-w-[90px]">{g.gameName}</span>
+                                            <span className={g.placement === 1 ? "text-amber-500" : "text-slate-600"}>
+                                              {placementLabel(g.placement)}
+                                            </span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </Fragment>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
         </div>
       ) : (
-        <div className="table-wrap detailed-table-wrapper slide-up-animation">
-          <table className="leaderboard interactive-table">
-            <thead>
-              <tr>
-                <th>Rank</th>
-                <th>Team</th>
-                <th>Members</th>
-                <th>Completed</th>
-                <th>Result</th>
-                {scoringGames.map((game) => (
-                  <th key={game.id}>{game.name}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {processedLeaderboard.map((row) => {
-                const originalRank = leaderboard.findIndex((item) => item.id === row.id) + 1;
-                const isExpanded = expandedTeamId === row.id;
-                const isFirst = originalRank === 1;
-                const isSecond = originalRank === 2;
-                const isThird = originalRank === 3;
+        /* Detailed Grid/Matrix Table View */
+        <div className="border border-slate-100 rounded-3xl overflow-hidden shadow-sm animate-fadeIn">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                  <th className="px-6 py-3.5 w-16">Rank</th>
+                  <th className="px-6 py-3.5">Team</th>
+                  <th className="px-6 py-3.5">Members</th>
+                  <th className="px-6 py-3.5 w-24">Scored</th>
+                  <th className="px-6 py-3.5 w-32">Points</th>
+                  {scoringGames.map((game) => (
+                    <th key={game.id} className="px-6 py-3.5 w-36 text-center">{game.name}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 bg-white">
+                {processedLeaderboard.map((row) => {
+                  const originalRank = leaderboard.findIndex((item) => item.id === row.id) + 1;
+                  const isFirst = originalRank === 1;
+                  const isSecond = originalRank === 2;
+                  const isThird = originalRank === 3;
 
-                return (
-                  <Fragment key={row.id}>
+                  return (
                     <tr
-                      className={`leaderboard-tr clickable-row ${isExpanded ? "active-row" : ""} ${
-                        isFirst ? "rank-1-row" : isSecond ? "rank-2-row" : isThird ? "rank-3-row" : ""
+                      key={row.id}
+                      className={`hover:bg-slate-50/50 transition ${
+                        isFirst ? "bg-amber-50/5" : ""
                       }`}
-                      onClick={() => toggleRow(row.id)}
                     >
-                      <td>
+                      <td className="px-6 py-4">
                         {isFirst ? (
-                          <span className="badge-wrapper">
-                            <TrophyIcon className="table-badge" width={24} height={24} color="#d4a017" />
-                            <span className="rank-text gold">1</span>
+                          <span className="flex items-center gap-1">
+                            <TrophyIcon className="text-amber-500 animate-pulse" width={18} height={18} />
+                            <span className="font-black text-xs text-amber-600">1</span>
                           </span>
                         ) : isSecond ? (
-                          <span className="badge-wrapper">
-                            <MedalIcon color="#94a3b8" className="table-badge" width={22} height={22} />
-                            <span className="rank-text silver">2</span>
+                          <span className="flex items-center gap-1">
+                            <MedalIcon className="text-slate-400" width={16} height={16} />
+                            <span className="font-black text-xs text-slate-500">2</span>
                           </span>
                         ) : isThird ? (
-                          <span className="badge-wrapper">
-                            <MedalIcon color="#b45309" className="table-badge" width={22} height={22} />
-                            <span className="rank-text bronze">3</span>
+                          <span className="flex items-center gap-1">
+                            <MedalIcon className="text-orange-700" width={16} height={16} />
+                            <span className="font-black text-xs text-orange-700">3</span>
                           </span>
                         ) : (
-                          <span className="rank-number-plain">{originalRank}</span>
+                          <span className="font-bold text-xs text-slate-400 pl-4">{originalRank}</span>
                         )}
                       </td>
-                      <td>
-                        <div className="team-col-name">
-                          <strong>{row.name}</strong>
-                          {isFirst && <span className="leader-pill">Leader</span>}
+                      
+                      <td className="px-6 py-4 text-xs">
+                        <div className="flex items-center gap-2">
+                          <strong className="text-slate-800 font-bold">{row.name}</strong>
+                          {isFirst && <span className="bg-amber-100 text-amber-700 text-[8px] font-extrabold px-1.5 py-0.5 rounded uppercase">Leader</span>}
                         </div>
                       </td>
-                      <td className="muted truncate-members">
+                      
+                      <td className="px-6 py-4 text-xs text-slate-400 font-bold truncate max-w-[150px]" title={row.members.join(", ")}>
                         {row.members.join(", ") || "Not decided yet"}
                       </td>
-                      <td>
-                        <span className="completed-fraction">
-                          {row.completedGames} / {totalGamesCount}
-                        </span>
+                      
+                      <td className="px-6 py-4 text-xs font-bold text-slate-500">
+                        {row.completedGames} / {totalGamesCount}
                       </td>
-                      <td>
-                        <strong className="total-placement-emphasis">
-                          {row.completedGames ? `${row.totalScore} pts · ${row.roundWins ?? 0}W` : "-"}
-                        </strong>
+                      
+                      <td className="px-6 py-4 text-xs font-extrabold text-slate-850">
+                        {row.completedGames ? `${row.totalScore} pts · ${row.roundWins ?? 0}W` : "-"}
                       </td>
+
                       {row.perGame.map((cell) => (
-                        <td key={cell.gameId} className="placement-cell-val">
+                        <td key={cell.gameId} className="px-6 py-4 text-center">
                           {cell.placement ? (
                             <span
-                              className={`place-indicator place-${cell.placement}`}
-                              title={`${cell.placement === 1 ? "1st" : cell.placement === 2 ? "2nd" : cell.placement === 3 ? "3rd" : `${cell.placement}th`} place · ${cell.points} point${cell.points === 1 ? "" : "s"}`}
+                              className={`inline-block text-[10px] font-extrabold px-2.5 py-1 rounded-full ${
+                                cell.placement === 1
+                                  ? "bg-amber-50 text-amber-700 border border-amber-100"
+                                  : cell.placement === 2
+                                  ? "bg-slate-50 text-slate-650 border border-slate-100"
+                                  : "bg-orange-50/50 text-orange-750 border border-orange-100/50"
+                              }`}
+                              title={`${placementLabel(cell.placement)} · ${cell.points} pts`}
                             >
                               {cell.points} pts
                             </span>
                           ) : (
-                            <span className="place-pending">-</span>
+                            <span className="text-slate-300">-</span>
                           )}
                         </td>
                       ))}
                     </tr>
-
-                    {isExpanded && (
-                      <tr className="expansion-row">
-                        <td colSpan={5 + scoringGames.length}>
-                          <div className="expanded-card-content slide-down-animation">
-                            <div className="card-grid">
-                              <div className="card-members">
-                                <h6>Team Members ({row.members.length})</h6>
-                                <div className="chips">
-                                  {row.members.map((member, idx) => (
-                                    <span key={idx} className="chip">
-                                      <span className="avatar">{member.charAt(0).toUpperCase()}</span>
-                                      {member}
-                                    </span>
-                                  ))}
-                                  {row.members.length === 0 && <span className="muted">Not decided yet.</span>}
-                                </div>
-                              </div>
-                              <div className="card-stats">
-                                <h6>Progress & Placements</h6>
-                                <div className="mini-progress-section">
-                                  <div className="progress-label">
-                                    <span>Games Completed</span>
-                                    <span>
-                                      {row.completedGames} of {totalGamesCount}
-                                    </span>
-                                  </div>
-                                  <div className="progress-bar-wrap">
-                                    <div
-                                      className="progress-bar-fill"
-                                      style={{
-                                        width: `${totalGamesCount > 0 ? (row.completedGames / totalGamesCount) * 100 : 0}%`,
-                                      }}
-                                    />
-                                  </div>
-                                </div>
-
-                                <div className="game-breakdown-list">
-                                  {row.perGame.map((g) => (
-                                    <div key={g.gameId} className="breakdown-item">
-                                      <span className="game-label-title">{g.gameName}</span>
-                                      <span className={`game-label-place ${g.placement === 1 ? "first" : ""}`}>
-                                        {placementLabel(g.placement)}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                );
-              })}
-            </tbody>
-          </table>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

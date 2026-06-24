@@ -1,8 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* ==========================================================================
    FAMILY DAY — MODERN UI REDESIGN
    A clean, contemporary sport-event theme with refined typography,
    layered shadows, and a warm-cool palette.
    ========================================================================== */
+
 
 /* ── DESIGN TOKENS ─────────────────────────────────────────────────────── */
 
@@ -106,6 +111,7 @@ html,
 body {
   margin: 0;
   min-height: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -2347,7 +2353,7 @@ select {
 
 .dashboard-sidebar {
   position: sticky;
-  top: 16px;
+  top: 82px;
   display: grid;
   gap: 16px;
   overflow: hidden;
@@ -3250,55 +3256,73 @@ select {
 
 .toast-card {
   pointer-events: auto;
+  position: relative;
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: 12px;
   align-items: center;
-  padding: 14px 16px;
-  border-radius: var(--r);
-  border: 1px solid var(--border);
-  background: var(--surface);
-  box-shadow: var(--shadow-xl);
+  padding: 14px 16px 14px 18px;
+  border-radius: 20px;
+  border: 1px solid #f1f5f9;
+  background: #ffffff;
+  box-shadow: 0 12px 32px -8px rgba(30, 41, 59, 0.18), 0 4px 12px -4px rgba(30, 41, 59, 0.08);
+  overflow: hidden;
   animation: toastSlideIn 220ms var(--ease-out) both;
 }
 
+/* Accent rail on the left edge */
+.toast-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+}
+
+.toast-success::before { background: #38bdf8; }
+.toast-warning::before { background: #f59e0b; }
+.toast-error::before { background: #fb7185; }
+
 .toast-card strong {
-  font-size: 0.88rem;
-  font-weight: 700;
+  font-size: 0.875rem;
+  font-weight: 800;
   display: block;
-  color: var(--text);
+  color: #1e293b;
+  letter-spacing: -0.01em;
 }
 
 .toast-icon-wrap {
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
   flex-shrink: 0;
 }
 
 .toast-success .toast-icon-wrap {
-  color: var(--accent);
-  background: var(--accent-soft);
+  color: #0284c7;
+  background: rgba(56, 189, 248, 0.12);
 }
 
 .toast-warning .toast-icon-wrap {
-  color: var(--warning);
-  background: var(--warning-soft);
+  color: #d97706;
+  background: rgba(245, 158, 11, 0.12);
 }
 
 .toast-error .toast-icon-wrap {
-  color: var(--danger);
-  background: var(--danger-soft);
+  color: #e11d48;
+  background: rgba(251, 113, 133, 0.12);
 }
 
 .toast-label {
-  font-size: 0.7rem;
+  font-size: 0.625rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
+  letter-spacing: 0.08em;
+  color: #94a3b8;
   display: block;
   margin-bottom: 2px;
 }
@@ -3310,16 +3334,16 @@ select {
   height: 28px;
   border: 0;
   border-radius: 999px;
-  color: var(--muted);
-  background: var(--surface-2);
+  color: #94a3b8;
+  background: #f8fafc;
   cursor: pointer;
   transition: var(--t-fast);
   flex-shrink: 0;
 }
 
 .toast-close:hover {
-  color: var(--text);
-  background: var(--surface-3);
+  color: #1e293b;
+  background: #f1f5f9;
 }
 
 .toast-dot {
@@ -3452,27 +3476,217 @@ select {
    ========================================================================== */
 
 .auth-shell {
-  min-height: calc(100vh - 80px);
+  position: relative;
+  min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: 24px;
+  padding: 32px 20px;
+  background-color: #fcfaf2;
+  background-image: radial-gradient(#fe7488 1px, transparent 0);
+  background-size: 40px 40px;
+  background-attachment: fixed;
+  overflow-x: hidden;
+}
+
+.auth-sun-glow {
+  position: absolute;
+  width: 560px;
+  height: 560px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.auth-sun-glow-tl {
+  top: -220px;
+  left: -220px;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.09) 0%, transparent 70%);
+}
+
+.auth-sun-glow-br {
+  bottom: -220px;
+  right: -220px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.09) 0%, transparent 70%);
+}
+
+.auth-content {
+  position: relative;
+  z-index: 1;
+  width: min(440px, 100%);
+  display: grid;
+  gap: 20px;
+}
+
+.auth-logo-area {
+  text-align: center;
+}
+
+.auth-logo-area h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #00668a;
+  margin: 0 0 4px;
+  letter-spacing: -0.02em;
+}
+
+.auth-logo-area p {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin: 0;
 }
 
 .auth-card {
-  width: min(440px, 100%);
+  background: #ffffff;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(30, 41, 59, 0.07);
 }
 
-.auth-card h2 {
-  font-size: 1.6rem;
-  font-weight: 800;
-  margin: 0 0 6px;
+.auth-bunting {
+  height: 12px;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='12' viewBox='0 0 60 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L10 12L20 0H0Z' fill='%23FB7185'/%3E%3Cpath d='M20 0L30 12L40 0H20Z' fill='%2338BDF8'/%3E%3Cpath d='M40 0L50 12L60 0H40Z' fill='%23FBBF24'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  flex-shrink: 0;
 }
 
-.auth-card-brand {
+.auth-card-body {
+  padding: 28px 28px 24px;
+  display: grid;
+  gap: 20px;
+}
+
+.auth-card-head {
+  text-align: center;
+}
+
+.auth-card-head h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+
+.auth-card-head p {
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.auth-form {
+  display: grid;
+  gap: 16px;
+}
+
+.auth-field {
+  display: grid;
+  gap: 6px;
+}
+
+.auth-field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-2);
+  padding-left: 4px;
+}
+
+.auth-input-wrap {
+  position: relative;
+}
+
+.auth-input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+}
+
+.auth-input-wrap input {
+  width: 100%;
+  padding: 12px 16px 12px 42px;
+  border: 1.5px solid var(--border-2);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.9rem;
+  transition: var(--t-fast);
+  font-family: var(--font-sans);
+}
+
+.auth-input-wrap input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: #fff;
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.auth-submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 24px;
+  border: none;
+  border-radius: 999px;
+  background: #fb7185;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: background 150ms ease, transform 120ms ease, box-shadow 150ms ease;
+  box-shadow: 0 4px 12px rgba(251, 113, 133, 0.3);
+  margin-top: 4px;
+}
+
+.auth-submit-btn:hover {
+  background: #f43f5e;
+  box-shadow: 0 6px 16px rgba(251, 113, 133, 0.4);
+  transform: translateY(-1px);
+}
+
+.auth-submit-btn:active {
+  transform: scale(0.97);
+}
+
+.auth-divider {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  text-align: center;
+}
+
+.auth-switch {
+  font-size: 0.875rem;
+  color: var(--text-2);
+  margin: 0;
+}
+
+.auth-switch a {
+  color: #00668a;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.auth-error-banner {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(186, 26, 26, 0.2);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 0.86rem;
+}
+
+.interactive-form {
+  margin-top: 14px;
 }
 
 .auth-brand-icon {
@@ -3489,21 +3703,6 @@ select {
 .auth-brand-icon-register {
   color: var(--accent);
   background: var(--accent-soft);
-}
-
-.auth-switch {
-  margin: 16px 0 0;
-  text-align: center;
-  font-size: 0.88rem;
-}
-
-.auth-switch a {
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.interactive-form {
-  margin-top: 14px;
 }
 
 /* ==========================================================================
@@ -4553,7 +4752,8 @@ select {
   }
 
   .app-topbar {
-    position: static;
+    position: sticky;
+    top: 8px;
     padding: 10px 14px;
   }
 

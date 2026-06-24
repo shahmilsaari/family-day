@@ -35,7 +35,11 @@ export function SiteHeader({ user, events }: SiteHeaderProps) {
   const activeEvent =
     events.find((event) => event.id === currentEventId) ?? events[0] ?? null;
 
-  if (pathname?.startsWith("/display")) {
+  if (
+    pathname?.startsWith("/display") ||
+    pathname === "/login" ||
+    pathname === "/register"
+  ) {
     return null;
   }
 
@@ -52,141 +56,188 @@ export function SiteHeader({ user, events }: SiteHeaderProps) {
     setAccountOpen(false);
   };
 
+  const activeEventQuery = activeEvent ? `?eventId=${activeEvent.id}` : "";
+
   return (
-    <header className="site-header app-topbar">
-      <Link className="site-brand" href="/" onClick={handleLinkClick}>
-        <span className="brand-mark">FD</span>
-        <span className="site-brand-text">
-          <span className="eyebrow">Family Day Operations</span>
-          <strong>Community Event Hub</strong>
-        </span>
+    <header className="max-w-7xl mx-auto mb-8 bg-white/90 backdrop-blur-md shadow-soft rounded-3xl border border-slate-100 px-6 py-4 flex flex-wrap items-center justify-between sticky top-3 z-50">
+      {/* Brand Logo */}
+      <Link className="flex items-center gap-4 hover:opacity-95 transition" href="/" onClick={handleLinkClick}>
+        <div className="bg-brand-secondary text-white w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-lg shadow-sm">
+          FD
+        </div>
+        <div>
+          <span className="inline-block text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+            FAMILY DAY OPERATIONS
+          </span>
+          <h1 className="font-heading font-bold text-base tracking-tight text-slate-800">
+            Community Event Hub
+          </h1>
+        </div>
       </Link>
 
+      {/* Mobile Menu Button */}
       <button
         aria-controls="main-nav-panel"
         aria-expanded={mobileNavOpen}
         aria-label="Toggle navigation"
-        className="mobile-nav-toggle"
+        className="lg:hidden p-2 text-slate-500 hover:text-brand-primary transition"
         onClick={() => setMobileNavOpen((open) => !open)}
         type="button"
       >
-        {mobileNavOpen ? <XIcon width={20} height={20} /> : <MenuIcon width={20} height={20} />}
+        {mobileNavOpen ? <XIcon width={24} height={24} /> : <MenuIcon width={24} height={24} />}
       </button>
 
+      {/* Navigation Menu */}
       <nav
         aria-label="Main navigation"
-        className={`site-nav app-nav ${mobileNavOpen ? "is-open" : ""}`}
+        className={`w-full lg:w-auto lg:flex items-center gap-6 mt-4 lg:mt-0 ${
+          mobileNavOpen ? "block" : "hidden lg:flex"
+        }`}
         id="main-nav-panel"
       >
-        <div className="nav-segment nav-main-links">
-          {navItems.map((item) => (
-            <Link
-              className={pathname === item.href ? "active" : ""}
-              href={item.href}
-              key={item.href}
-              onClick={handleLinkClick}
-            >
-              <item.icon width={18} height={18} />
-              <span>{item.label}</span>
-            </Link>
-          ))}
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2 lg:gap-4 mb-4 lg:mb-0">
+          {navItems.map((item) => {
+            const isLinkActive = pathname === item.href;
+            const linkHref =
+              item.href === "/dashboard" || item.href === "/display"
+                ? `${item.href}${activeEventQuery}`
+                : item.href;
+            return (
+              <Link
+                className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm transition-all ${
+                  isLinkActive
+                    ? "bg-brand-primary text-white shadow-md shadow-brand-primary/20"
+                    : "text-slate-600 hover:text-brand-primary hover:bg-slate-50"
+                }`}
+                href={linkHref}
+                key={item.href}
+                onClick={handleLinkClick}
+              >
+                <item.icon width={16} height={16} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
         </div>
 
-        {user && (
-          <details
-            className="nav-dropdown nav-event-switcher"
-            open={eventOpen}
-            onToggle={(e) => setEventOpen(e.currentTarget.open)}
-          >
-            <summary>
-              <span>
-                <span className="nav-event-label">Event</span>
-                <strong className="nav-event-value">
-                  {activeEvent
-                    ? `${activeEvent.title} ${activeEvent.year}`
-                    : "No event"}
-                </strong>
-              </span>
-              <ChevronDownIcon width={14} height={14} />
-            </summary>
-            <div className="nav-dropdown-menu">
-              {events.length ? (
-                events.map((event) => (
-                  <Link
-                    className={event.id === activeEvent?.id ? "active" : ""}
-                    href={{ pathname: "/dashboard", query: { eventId: event.id } }}
-                    key={event.id}
-                    onClick={handleLinkClick}
-                  >
-                    <span>{event.title}</span>
-                    <small>{event.year}</small>
-                  </Link>
-                ))
-              ) : (
-                <span className="nav-dropdown-empty">No events yet</span>
-              )}
-              <Link href="/events" onClick={handleLinkClick}>
-                Manage all events
-              </Link>
-            </div>
-          </details>
-        )}
+        {/* Separator on Desktop */}
+        {user && <div className="hidden lg:block w-[1px] h-6 bg-slate-100 mx-2" />}
 
-        <div className="nav-segment nav-account-links">
-          {user ? (
+        {/* Event Selector Dropdown */}
+        {user && (
+          <div className="relative mb-4 lg:mb-0">
             <details
-              className="nav-dropdown nav-account-menu"
-              open={accountOpen}
-              onToggle={(e) => setAccountOpen(e.currentTarget.open)}
+              className="group cursor-pointer select-none"
+              open={eventOpen}
+              onToggle={(e) => setEventOpen(e.currentTarget.open)}
             >
-              <summary>
-                <span className="nav-account-summary">
-                  <span className="nav-avatar">
-                    {user.name.charAt(0).toUpperCase()}
+              <summary className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-4 py-2 rounded-full text-xs font-bold text-slate-700 hover:bg-slate-100 transition list-none">
+                <span>
+                  EVENT:{" "}
+                  <span className="text-brand-primary">
+                    {activeEvent
+                      ? `${activeEvent.title} ${activeEvent.year}`
+                      : "No event"}
                   </span>
-                  <strong className="nav-account-name">{user.name}</strong>
                 </span>
-                <ChevronDownIcon width={14} height={14} />
+                <ChevronDownIcon width={12} height={12} className="text-slate-400 transition-transform group-open:rotate-180" />
               </summary>
-              <div className="nav-dropdown-menu align-right">
-                <span className="nav-account-email">{user.email}</span>
-                <Link href="/events" onClick={handleLinkClick}>
-                  My Events
-                </Link>
+              <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-100 shadow-soft rounded-2xl p-2 flex flex-col gap-1 z-50">
+                {events.length ? (
+                  events.map((event) => (
+                    <Link
+                      className={`flex items-between justify-between px-3.5 py-2 rounded-xl text-xs font-semibold transition ${
+                        event.id === activeEvent?.id
+                          ? "bg-brand-primary/10 text-brand-primary"
+                          : "text-slate-600 hover:bg-slate-50"
+                      }`}
+                      href={{ pathname: pathname === "/" ? "/dashboard" : pathname, query: { eventId: event.id } }}
+                      key={event.id}
+                      onClick={handleLinkClick}
+                    >
+                      <span className="font-bold">{event.title}</span>
+                      <small className="opacity-75">{event.year}</small>
+                    </Link>
+                  ))
+                ) : (
+                  <span className="px-3.5 py-2 text-xs text-slate-400 italic">No events yet</span>
+                )}
+                <div className="h-[1px] bg-slate-100 my-1" />
                 <Link
-                  href={
-                    activeEvent
-                      ? { pathname: "/display", query: { eventId: activeEvent.id } }
-                      : "/display"
-                  }
+                  className="px-3.5 py-2 text-xs font-bold text-brand-secondary hover:bg-slate-50 rounded-xl transition text-center"
+                  href="/events"
                   onClick={handleLinkClick}
                 >
-                  Open Display
+                  Manage all events
                 </Link>
-                <form action={logoutUser}>
-                  <button className="nav-logout-btn" type="submit">
-                    Logout
-                  </button>
-                </form>
               </div>
             </details>
+          </div>
+        )}
+
+        {/* User Account Controls */}
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
+          {user ? (
+            <div className="relative">
+              <details
+                className="group cursor-pointer select-none"
+                open={accountOpen}
+                onToggle={(e) => setAccountOpen(e.currentTarget.open)}
+              >
+                <summary className="flex items-center gap-2 bg-brand-primary/10 border border-brand-primary/20 text-brand-primary px-4 py-2 rounded-full font-bold text-xs hover:bg-brand-primary/20 transition list-none">
+                  <div className="w-5 h-5 bg-brand-primary text-white rounded-full flex items-center justify-center font-bold text-[10px]">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span>{user.name}</span>
+                  <ChevronDownIcon width={12} height={12} className="text-brand-primary transition-transform group-open:rotate-180" />
+                </summary>
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-100 shadow-soft rounded-2xl p-2 flex flex-col gap-1 z-50">
+                  <span className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-50">
+                    {user.email}
+                  </span>
+                  <Link
+                    className="px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition"
+                    href="/events"
+                    onClick={handleLinkClick}
+                  >
+                    My Workspaces
+                  </Link>
+                  <Link
+                    className="px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition"
+                    href={activeEvent ? `/display?eventId=${activeEvent.id}` : "/display"}
+                    onClick={handleLinkClick}
+                  >
+                    Open Live Display
+                  </Link>
+                  <div className="h-[1px] bg-slate-100 my-1" />
+                  <form action={logoutUser} className="w-full">
+                    <button
+                      className="w-full text-left px-3.5 py-2 text-xs font-bold text-rose-500 hover:bg-rose-50 rounded-xl transition"
+                      type="submit"
+                    >
+                      Logout
+                    </button>
+                  </form>
+                </div>
+              </details>
+            </div>
           ) : (
-            <>
+            <div className="flex items-center gap-3">
               <Link
-                className={pathname === "/login" ? "active" : ""}
+                className={`px-4 py-2 text-sm font-bold text-slate-700 hover:text-brand-primary transition`}
                 href="/login"
                 onClick={handleLinkClick}
               >
                 Login
               </Link>
               <Link
-                className={pathname === "/register" ? "active" : ""}
+                className="px-6 py-2 bg-brand-dark text-white rounded-full font-bold text-sm shadow-md hover:bg-slate-800 transition"
                 href="/register"
                 onClick={handleLinkClick}
               >
                 Register
               </Link>
-            </>
+            </div>
           )}
         </div>
       </nav>

@@ -37,3 +37,6 @@ AGENTS.md
 AI_RULES.md
 ARCHITECTURE.md
 PROJECT_MEMORY.md
+
+# local npm cache
+.npm-cache/

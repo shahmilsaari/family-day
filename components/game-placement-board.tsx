@@ -117,38 +117,67 @@ export function GamePlacementBoard({
   };
 
   const getPlacementBadge = (index: number) => {
-    if (index === 0) return <span className="placement-pill rank-1">🥇 Champ</span>;
-    if (index === 1) return <span className="placement-pill rank-2">🥈 2nd</span>;
-    if (index === 2) return <span className="placement-pill rank-3">🥉 3rd</span>;
-    return <span className="placement-pill rank-other">{index + 1}th</span>;
+    if (index === 0) return <span className="bg-brand-secondary text-white text-[9px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">Champ</span>;
+    if (index === 1) return <span className="bg-slate-100 text-slate-650 text-[9px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">2nd</span>;
+    if (index === 2) return <span className="bg-slate-50 text-slate-500 text-[9px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">3rd</span>;
+    return <span className="bg-slate-50 text-slate-400 text-[9px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">{index + 1}th</span>;
   };
 
   return (
-    <article className="placement-board board-glass-panel slide-up-animation">
-      <header className="placement-board-header dashboard-board-head">
-        <div>
-          <p className="eyebrow">Placement Points Deck</p>
-          <h4>{gameName}</h4>
-          {gameDescription ? <p className="muted">{gameDescription}</p> : null}
-          <p className="muted">
-            Round {round} of {totalRounds} · used to decide this game result
-          </p>
-        </div>
-        <span className="teams-count-indicator">{orderedTeams.length} Teams</span>
-      </header>
+    <div className="bg-white border border-slate-150 rounded-3xl p-8 shadow-soft">
+      {/* Deck Header */}
+      <div className="flex justify-between items-center mb-4">
+        <span className="bg-brand-secondary/15 text-brand-secondary text-[9px] font-extrabold px-3 py-1.5 rounded-full uppercase tracking-widest">
+          Placement Deck
+        </span>
+        <span className="text-[10px] font-extrabold text-slate-350 uppercase tracking-widest">
+          {orderedTeams.length} Participating Teams
+        </span>
+      </div>
 
+      <h4 className="text-2xl font-extrabold mb-1 tracking-tight text-slate-800 font-heading">
+        {gameName}
+      </h4>
+      
+      {gameDescription ? (
+        <p className="text-xs text-slate-400 font-bold leading-relaxed mb-6">
+          {gameDescription}
+        </p>
+      ) : (
+        <p className="text-xs text-slate-400 font-bold leading-relaxed mb-6">
+          Rank placements to distribute leaderboard scores.
+        </p>
+      )}
+
+      {/* Point Scoring Info Card */}
       {orderedTeams.length ? (
         <>
-          <div className="placement-score-note">
-            <strong>Round rule:</strong> Drag teams into finishing order. Top team earns the most points (equal to the
-            number of teams), next earns one less, and so on. Highest total wins.
+          <div className="bg-brand-primary/5 p-4 rounded-2xl mb-8 border border-brand-primary/10">
+            <p className="text-xs leading-relaxed text-slate-600 font-bold">
+              <span className="font-extrabold text-brand-primary uppercase tracking-widest text-[10px] mr-2">
+                Rule:
+              </span>
+              Drag teams into finishing order. 
+              {orderedTeams.length >= 3 ? (
+                ` 1st place = ${orderedTeams.length}pts, 2nd = ${orderedTeams.length - 1}pts, 3rd = ${orderedTeams.length - 2}pts, etc.`
+              ) : (
+                " 1st place earns the highest score based on team count."
+              )}
+            </p>
           </div>
-          <ol className="drag-list sorting-deck-rail">
+
+          {/* Rankings List */}
+          <ol className="space-y-4">
             {orderedTeams.map((team, index) => {
               const isDragging = draggedTeamId === team.id;
+              // Team opacity and focus styles based on placement
+              const opacityClass = index === 0 ? "opacity-100" : index === 1 ? "opacity-90" : "opacity-75";
+              
               return (
                 <li
-                  className={`drag-row sorting-deck-row ${isDragging ? "is-dragging" : ""}`}
+                  className={`flex items-center justify-between border border-slate-100 rounded-2xl p-5 bg-white shadow-sm hover:border-brand-primary transition-all group ${
+                    isDragging ? "opacity-30 border-dashed border-brand-primary" : ""
+                  } ${opacityClass}`}
                   draggable
                   key={team.id}
                   onDragStart={(event) => {
@@ -167,33 +196,43 @@ export function GamePlacementBoard({
                   }}
                   onDragEnd={() => setDraggedTeamId(null)}
                 >
-                  <div className="drag-handle-wrap" title="Drag to reorder">
-                    <DragHandleIcon width={12} height={20} />
+                  <div className="flex items-center space-x-6">
+                    {/* Drag Handle */}
+                    <div 
+                      className="w-8 h-8 flex items-center justify-center text-slate-200 group-hover:text-brand-primary transition-colors cursor-grab"
+                      title="Drag to reorder"
+                    >
+                      <DragHandleIcon width={12} height={20} />
+                    </div>
+
+                    {/* Medal / Placement Badge */}
+                    {getPlacementBadge(index)}
+
+                    <div>
+                      <p className="font-extrabold text-slate-800 text-base">{team.name}</p>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                        Current Rank: {index + 1}
+                      </p>
+                    </div>
                   </div>
 
-                  {getPlacementBadge(index)}
-
-                  <div className="sorting-row-text">
-                    <span className="team-row-name">{team.name}</span>
-                    <small className="team-row-members truncate-members">
-                      {team.members.join(", ") || "Not decided yet"}
-                    </small>
-                  </div>
-
-                  <div className="placement-stepper" aria-label={`Move ${team.name}`}>
+                  {/* Stepper controls */}
+                  <div className="flex space-x-2">
                     <button
                       type="button"
+                      className="w-10 h-10 border border-slate-100 rounded-xl flex items-center justify-center text-slate-350 hover:text-brand-primary hover:border-brand-primary transition-all disabled:opacity-30 disabled:hover:text-slate-350 disabled:hover:border-slate-100"
                       onClick={() => moveTeamByStep(team.id, -1)}
                       disabled={index === 0}
-                      aria-label={`Move ${team.name} up`}
+                      aria-label="Move up"
                     >
                       ↑
                     </button>
                     <button
                       type="button"
+                      className="w-10 h-10 border border-slate-100 rounded-xl flex items-center justify-center text-slate-350 hover:text-brand-primary hover:border-brand-primary transition-all disabled:opacity-30 disabled:hover:text-slate-350 disabled:hover:border-slate-100"
                       onClick={() => moveTeamByStep(team.id, 1)}
                       disabled={index === orderedTeams.length - 1}
-                      aria-label={`Move ${team.name} down`}
+                      aria-label="Move down"
                     >
                       ↓
                     </button>
@@ -204,30 +243,18 @@ export function GamePlacementBoard({
           </ol>
         </>
       ) : (
-        <EmptyState
-          compact
-          icon={<UsersIcon width={28} height={28} />}
-          title="No teams registered"
-          description="Teams must be added to list before ranking."
-        />
+        <div className="my-10">
+          <EmptyState
+            compact
+            icon={<UsersIcon width={28} height={28} />}
+            title="No teams registered"
+            description="Teams must be added to lobby list before scoring."
+          />
+        </div>
       )}
 
-      <div className="placement-actions scoring-actions-bar">
-        <form action={handleSavePlacements}>
-          <input type="hidden" name="eventId" value={eventId} />
-          <input type="hidden" name="gameId" value={gameId} />
-          <input type="hidden" name="round" value={round} />
-          <input type="hidden" name="orderedTeamIds" value={orderedTeams.map((team) => team.id).join(",")} />
-          <button
-            className="primary-btn save-deck-btn"
-            type="submit"
-            disabled={orderedTeams.length === 0 || pendingAction !== null}
-          >
-            <SaveIcon width={16} height={16} />
-            <span>{pendingAction === "save" ? "Saving..." : "Save Round Placements"}</span>
-          </button>
-        </form>
-
+      {/* Scoring Action Buttons */}
+      <div className="mt-10 flex justify-end space-x-4">
         <form
           action={handleClearPlacements}
           onSubmit={(event) => {
@@ -238,12 +265,29 @@ export function GamePlacementBoard({
         >
           <input type="hidden" name="gameId" value={gameId} />
           <input type="hidden" name="round" value={round} />
-          <button className="danger-btn clear-deck-btn" type="submit" disabled={pendingAction !== null}>
-            <TrashIcon width={16} height={16} />
-            <span>{pendingAction === "clear" ? "Clearing..." : "Clear Round"}</span>
+          <button 
+            className="bg-white border border-slate-200 px-8 py-3 rounded-xl font-extrabold text-slate-400 hover:text-rose-500 transition-all text-xs uppercase tracking-wider disabled:opacity-50"
+            type="submit" 
+            disabled={pendingAction !== null}
+          >
+            {pendingAction === "clear" ? "Clearing..." : "Clear Round"}
+          </button>
+        </form>
+
+        <form action={handleSavePlacements}>
+          <input type="hidden" name="eventId" value={eventId} />
+          <input type="hidden" name="gameId" value={gameId} />
+          <input type="hidden" name="round" value={round} />
+          <input type="hidden" name="orderedTeamIds" value={orderedTeams.map((team) => team.id).join(",")} />
+          <button
+            className="bg-brand-primary text-white px-8 py-3 rounded-xl font-extrabold shadow-lg shadow-brand-primary/20 text-xs uppercase tracking-wider hover:bg-sky-400 transition-all disabled:opacity-50"
+            type="submit"
+            disabled={orderedTeams.length === 0 || pendingAction !== null}
+          >
+            {pendingAction === "save" ? "Saving..." : "Save Placements"}
           </button>
         </form>
       </div>
-    </article>
+    </div>
   );
 }

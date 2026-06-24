@@ -22,10 +22,15 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@tailwindcss/container-queries": "^0.1.1",
+    "@tailwindcss/forms": "^0.5.11",
     "@types/node": "^25.9.3",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
+    "autoprefixer": "^10.5.1",
+    "postcss": "^8.5.15",
     "prisma": "^7.8.0",
+    "tailwindcss": "^3.4.19",
     "typescript": "^5.7.0"
   },
   "prisma": {
