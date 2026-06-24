@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { Game, Team } from "@prisma/client";
 import { confirmDialog } from "@/components/confirm-dialog";
+import { TeamJoinPanel } from "@/components/team-join-panel";
 import { notify } from "@/components/toast-host";
 import {
   createGame,
@@ -300,6 +301,8 @@ export function LobbyConsole({ eventId, teams, games }: LobbyConsoleProps) {
                           </p>
                         )}
                       </div>
+
+                      <TeamJoinPanel code={team.joinCode} color={team.color} teamName={team.name} />
                     </div>
 
                     <div className="pt-4 border-t border-slate-50 flex items-center justify-between">

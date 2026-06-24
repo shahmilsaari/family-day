@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireEventOwner, requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { generateUniqueJoinCode, pickTeamColor } from "@/lib/team-code";
 
 export type ActionResult = { error?: string };
 
@@ -88,10 +89,17 @@ export async function createTeam(formData: FormData): Promise<ActionResult> {
   try {
     await requireEventOwner(eventId);
 
+    const [joinCode, teamCount] = await Promise.all([
+      generateUniqueJoinCode(),
+      prisma.team.count({ where: { eventId } }),
+    ]);
+
     const team = await prisma.team.create({
       data: {
         eventId,
         name,
+        joinCode,
+        color: pickTeamColor(teamCount),
         members: {
           create: members.map((member) => ({ name: member }))
         }

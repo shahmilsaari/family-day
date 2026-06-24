@@ -148,6 +148,7 @@ export async function loadDashboard(eventId?: number) {
       return {
         id: team.id,
         name: team.name,
+        color: team.color ?? null,
         members: team.members.map((member) => member.name),
         perGame,
         completedGames,

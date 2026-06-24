@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { LiveClock } from "@/components/live-clock";
+import { LiveStandings } from "@/components/live-standings";
 import { loadDashboard } from "@/lib/dashboard";
 import { formatScheduleDate, formatScheduleTime } from "@/lib/timetable";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -135,37 +136,15 @@ export default async function DisplayPage({ searchParams }: DisplayPageProps) {
                   <span>Leaderboard</span>
                 </h3>
                 
-                <div className="space-y-3">
-                  {leaderboard.slice(0, 7).map((team, idx) => {
-                    const rank = idx + 1;
-                    const isFirst = rank === 1;
-                    return (
-                      <div 
-                        key={team.id}
-                        className={`flex items-center justify-between p-4 rounded-2xl transition-all ${
-                          isFirst 
-                            ? "bg-slate-50 border-l-4 border-[#f9bd22] shadow-sm" 
-                            : "bg-white border border-slate-100"
-                        }`}
-                      >
-                        <div className="flex items-center gap-4">
-                          <span className={`font-heading font-extrabold text-lg ${
-                            isFirst ? "text-[#f9bd22]" : "text-slate-350"
-                          }`}>
-                            {rank}
-                          </span>
-                          <span className="font-bold text-slate-800 text-sm">{team.name}</span>
-                        </div>
-                        <span className="font-heading font-extrabold text-lg text-[#00668a]">
-                          {team.totalScore}
-                        </span>
-                      </div>
-                    );
-                  })}
-                  {leaderboard.length === 0 && (
-                    <p className="text-slate-405 italic text-xs font-semibold py-8 text-center">No scores recorded</p>
-                  )}
-                </div>
+                <LiveStandings
+                  eventId={event.id}
+                  rows={leaderboard.slice(0, 7).map((team) => ({
+                    id: team.id,
+                    name: team.name,
+                    color: team.color,
+                    totalScore: team.totalScore,
+                  }))}
+                />
               </div>
             </div>
 
@@ -189,7 +168,13 @@ export default async function DisplayPage({ searchParams }: DisplayPageProps) {
                   </span>
                 </div>
                 
-                <h2 className="font-heading font-extrabold text-4xl md:text-6xl text-slate-800 mb-4 tracking-tight">
+                <h2 className="font-heading font-extrabold text-4xl md:text-6xl text-slate-800 mb-4 tracking-tight flex items-center justify-center gap-4">
+                  {leader?.color && (
+                    <span
+                      className="w-5 h-5 md:w-7 md:h-7 rounded-full shrink-0 shadow-sm"
+                      style={{ backgroundColor: leader.color }}
+                    />
+                  )}
                   {leader ? leader.name : "Waiting for Scores"}
                 </h2>
                 

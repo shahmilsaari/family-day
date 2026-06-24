@@ -37,6 +37,7 @@ export function SiteHeader({ user, events }: SiteHeaderProps) {
 
   if (
     pathname?.startsWith("/display") ||
+    pathname?.startsWith("/join") ||
     pathname === "/login" ||
     pathname === "/register"
   ) {

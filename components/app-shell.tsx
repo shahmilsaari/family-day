@@ -8,11 +8,14 @@ import { usePathname } from "next/navigation";
  * SiteHeader. The public marketing landing ("/") renders full-bleed with its
  * own header/footer, so it skips the shell entirely.
  */
+const FULL_BLEED_EXACT = new Set(["/", "/login", "/register"]);
+
 export function AppShell({ header, children }: { header: ReactNode; children: ReactNode }) {
   const pathname = usePathname();
-  const isMarketing = pathname === "/";
+  const isFullBleed =
+    (pathname && FULL_BLEED_EXACT.has(pathname)) || pathname?.startsWith("/join");
 
-  if (isMarketing) {
+  if (isFullBleed) {
     return <>{children}</>;
   }
 

@@ -46,6 +46,8 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     eventId INTEGER NOT NULL,
     name TEXT NOT NULL,
+    joinCode TEXT UNIQUE,
+    color TEXT,
     createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (eventId) REFERENCES family_day_events(id) ON DELETE CASCADE,
@@ -239,6 +241,44 @@ if (!existingScheduleCols.includes("scheduleDate")) {
 }
 if (!existingScheduleCols.includes("pic")) {
   db.exec(`ALTER TABLE tentative_schedules ADD COLUMN pic TEXT;`);
+}
+
+// Team join codes + colors (self-service join + colorful live display)
+const existingTeamCols = db.prepare(`PRAGMA table_info(teams)`).all().map(c => c.name);
+if (!existingTeamCols.includes("joinCode")) {
+  db.exec(`ALTER TABLE teams ADD COLUMN joinCode TEXT;`);
+}
+if (!existingTeamCols.includes("color")) {
+  db.exec(`ALTER TABLE teams ADD COLUMN color TEXT;`);
+}
+// ALTER cannot add a UNIQUE column in SQLite — enforce via a unique index instead.
+db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS teams_joinCode_key ON teams(joinCode);`);
+
+// Backfill join codes + colors for teams created before this feature.
+const TEAM_COLORS = ["#38BDF8", "#FB7185", "#22C55E", "#E1A800", "#A855F7", "#F97316", "#14B8A6", "#EC4899"];
+const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no ambiguous 0/O/1/I
+function makeCode() {
+  let code = "";
+  for (let i = 0; i < 6; i++) code += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
+  return code;
+}
+const usedCodes = new Set(
+  db.prepare(`SELECT joinCode FROM teams WHERE joinCode IS NOT NULL`).all().map(r => r.joinCode),
+);
+const teamsNeedingBackfill = db.prepare(`SELECT id, color, joinCode FROM teams ORDER BY eventId, id`).all();
+let colorIndex = 0;
+const setTeamMeta = db.prepare(`UPDATE teams SET joinCode = COALESCE(joinCode, ?), color = COALESCE(color, ?) WHERE id = ?`);
+for (const team of teamsNeedingBackfill) {
+  let code = team.joinCode;
+  if (!code) {
+    do {
+      code = makeCode();
+    } while (usedCodes.has(code));
+    usedCodes.add(code);
+  }
+  const color = team.color ?? TEAM_COLORS[colorIndex % TEAM_COLORS.length];
+  colorIndex += 1;
+  setTeamMeta.run(code, color, team.id);
 }
 
 db.close();

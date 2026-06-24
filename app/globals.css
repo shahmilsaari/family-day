@@ -1747,6 +1747,15 @@ select {
   to { max-height: 800px; opacity: 1; transform: translateY(0); }
 }
 
+@keyframes rankFlash {
+  0% { background-color: rgba(56, 189, 248, 0.18); transform: scale(1.015); }
+  100% { background-color: transparent; transform: scale(1); }
+}
+
+.rank-flash {
+  animation: rankFlash 1.4s var(--ease-out, ease-out) 1;
+}
+
 @keyframes shimmerBorder {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
