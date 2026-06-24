@@ -11,7 +11,7 @@ resources:
 images:
   - name: family-day-web
     newName: ghcr.io/shahmilsaari/family-day
-    newTag: "ff2bdfb2"
+    newTag: "6aaff725"
 
 patches:
   - path: patch-deployment.yaml
