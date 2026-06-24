@@ -140,8 +140,8 @@ export function GamePlacementBoard({
       {orderedTeams.length ? (
         <>
           <div className="placement-score-note">
-            <strong>Round rule:</strong> Top team gets 1 point, second gets 2, third gets 3. All rounds combine
-            into one final game placement for the leaderboard.
+            <strong>Round rule:</strong> Drag teams into finishing order. Top team earns the most points (equal to the
+            number of teams), next earns one less, and so on. Highest total wins.
           </div>
           <ol className="drag-list sorting-deck-rail">
             {orderedTeams.map((team, index) => {

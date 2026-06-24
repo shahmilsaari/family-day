@@ -123,13 +123,23 @@ export async function loadDashboard(eventId?: number) {
     });
   }
 
+  // Highest score wins: a team placing Pth among `teamCount` teams in a game
+  // earns (teamCount - P + 1) points, so 1st place earns the most.
+  const teamCount = teams.length;
+  const pointsForPlacement = (placement: number | null) =>
+    placement === null ? 0 : Math.max(0, teamCount - placement + 1);
+
   const leaderboard = teams
     .map((team) => {
-      const perGame = scoringGames.map((game) => ({
-        gameId: game.id,
-        gameName: game.name,
-        placement: gamePlacementMap.get(`${team.id}:${game.id}`) ?? null
-      }));
+      const perGame = scoringGames.map((game) => {
+        const placement = gamePlacementMap.get(`${team.id}:${game.id}`) ?? null;
+        return {
+          gameId: game.id,
+          gameName: game.name,
+          placement,
+          points: placement === null ? null : pointsForPlacement(placement)
+        };
+      });
       const completedGames = perGame.filter((cell) => cell.placement !== null).length;
       const roundWins = gameWinMap.get(team.id) ?? 0;
       const secondPlaces = gameSecondMap.get(team.id) ?? 0;
@@ -144,16 +154,17 @@ export async function loadDashboard(eventId?: number) {
         roundWins,
         secondPlaces,
         thirdPlaces,
+        totalScore: perGame.reduce((sum, cell) => sum + (cell.points ?? 0), 0),
         totalPlacement: perGame.reduce((sum, cell) => sum + (cell.placement ?? 0), 0)
       };
     })
     .sort(
       (a, b) =>
-        b.completedGames - a.completedGames ||
+        b.totalScore - a.totalScore ||
         b.roundWins - a.roundWins ||
-        a.totalPlacement - b.totalPlacement ||
         b.secondPlaces - a.secondPlaces ||
         b.thirdPlaces - a.thirdPlaces ||
+        b.completedGames - a.completedGames ||
         a.name.localeCompare(b.name)
     );
 

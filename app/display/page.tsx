@@ -111,7 +111,7 @@ export default async function DisplayPage({ searchParams }: DisplayPageProps) {
           </p>
           <strong>
             {leader?.completedGames
-              ? `${leader.roundWins ?? 0} game wins · ${leader.totalPlacement} pts`
+              ? `${leader.totalScore} pts · ${leader.roundWins ?? 0} game wins`
               : "No games scored yet"}
           </strong>
         </article>
@@ -153,7 +153,7 @@ export default async function DisplayPage({ searchParams }: DisplayPageProps) {
                   </div>
                   <b>
                     {team.completedGames
-                      ? `${team.roundWins ?? 0}W · ${team.totalPlacement} pts`
+                      ? `${team.totalScore} pts · ${team.roundWins ?? 0}W`
                       : "-"}
                   </b>
                 </li>

@@ -24,11 +24,12 @@ type LeaderboardRow = {
   id: number;
   name: string;
   members: string[];
-  perGame: { gameId: number; gameName: string; placement: number | null; completedRounds?: number; totalRounds?: number }[];
+  perGame: { gameId: number; gameName: string; placement: number | null; points?: number | null; completedRounds?: number; totalRounds?: number }[];
   completedGames: number;
   roundWins?: number;
   secondPlaces?: number;
   thirdPlaces?: number;
+  totalScore: number;
   totalPlacement: number;
 };
 

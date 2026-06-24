@@ -8,11 +8,12 @@ type LeaderboardRow = {
   id: number;
   name: string;
   members: string[];
-  perGame: { gameId: number; gameName: string; placement: number | null; completedRounds?: number; totalRounds?: number }[];
+  perGame: { gameId: number; gameName: string; placement: number | null; points?: number | null; completedRounds?: number; totalRounds?: number }[];
   completedGames: number;
   roundWins?: number;
   secondPlaces?: number;
   thirdPlaces?: number;
+  totalScore: number;
   totalPlacement: number;
 };
 
@@ -102,11 +103,11 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
     list.sort((a, b) => {
       if (sortBy === "completed") {
         return (
-          b.completedGames - a.completedGames ||
+          b.totalScore - a.totalScore ||
           (b.roundWins ?? 0) - (a.roundWins ?? 0) ||
-          a.totalPlacement - b.totalPlacement ||
           (b.secondPlaces ?? 0) - (a.secondPlaces ?? 0) ||
-          (b.thirdPlaces ?? 0) - (a.thirdPlaces ?? 0)
+          (b.thirdPlaces ?? 0) - (a.thirdPlaces ?? 0) ||
+          b.completedGames - a.completedGames
         );
       }
       if (sortBy === "name") {
@@ -158,15 +159,15 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
           <p className="eyebrow">How Victory Is Calculated</p>
           <strong>Leaderboard is scored per game, not per round.</strong>
           <span>
-            Rounds decide the result inside each game. Then each game gives one final placement: 1st = 1 point, 2nd = 2 points,
-            3rd = 3 points. Lowest game placement total wins.
+            Rounds decide the result inside each game. Then each game awards points by placement: 1st place earns the most
+            (equal to the number of teams), 2nd earns one less, and so on. Highest total points wins.
           </span>
         </div>
         <ol>
-          <li>Most completed games</li>
+          <li>Highest total points</li>
           <li>Most game wins</li>
-          <li>Lowest game placement points</li>
           <li>Most 2nd places, then 3rd places</li>
+          <li>Most completed games</li>
         </ol>
       </div>
 
@@ -283,7 +284,7 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
                   <div className="podium-score-pill">
                     <span>
                       {team.completedGames
-                        ? `${team.roundWins ?? 0} game wins · ${team.totalPlacement} pts`
+                        ? `${team.totalScore} pts · ${team.roundWins ?? 0} game wins`
                         : "No games scored yet"}
                     </span>
                   </div>
@@ -397,7 +398,7 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
                           </td>
                           <td>
                             <strong className="total-score-txt">
-                              {row.completedGames ? `${row.roundWins ?? 0}W · ${row.totalPlacement} pts` : "-"}
+                              {row.completedGames ? `${row.totalScore} pts · ${row.roundWins ?? 0}W` : "-"}
                             </strong>
                           </td>
                           <td>
@@ -481,7 +482,7 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
                       </td>
                       <td>
                         <strong className="total-placement-emphasis">
-                          {row.completedGames ? `${row.roundWins ?? 0}W · ${row.totalPlacement} pts` : "-"}
+                          {row.completedGames ? `${row.totalScore} pts · ${row.roundWins ?? 0}W` : "-"}
                         </strong>
                       </td>
                       {row.perGame.map((cell) => (
@@ -489,9 +490,9 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
                           {cell.placement ? (
                             <span
                               className={`place-indicator place-${cell.placement}`}
-                              title={`${cell.placement} placement point${cell.placement === 1 ? "" : "s"}`}
+                              title={`${cell.placement === 1 ? "1st" : cell.placement === 2 ? "2nd" : cell.placement === 3 ? "3rd" : `${cell.placement}th`} place · ${cell.points} point${cell.points === 1 ? "" : "s"}`}
                             >
-                              {cell.placement} pt
+                              {cell.points} pts
                             </span>
                           ) : (
                             <span className="place-pending">-</span>

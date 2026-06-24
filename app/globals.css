@@ -9,70 +9,89 @@
 :root {
   color-scheme: light;
 
-  /* Surfaces */
-  --bg: #f5f6f8;
-  --bg-grad: linear-gradient(170deg, #eef1f6 0%, #f5f6f8 30%, #eaf3ef 100%);
+  /* Surfaces — warm festival paper */
+  --bg: #fff7ed;
+  --bg-grad: radial-gradient(circle at 15% 20%, #ffe3ec 0%, transparent 42%),
+             radial-gradient(circle at 85% 12%, #d8f3ff 0%, transparent 40%),
+             radial-gradient(circle at 75% 85%, #e6ffe1 0%, transparent 45%),
+             radial-gradient(circle at 25% 90%, #fff3c4 0%, transparent 40%),
+             linear-gradient(160deg, #fffdf7 0%, #fff7ef 100%);
   --surface: #ffffff;
-  --surface-2: #fafbfc;
-  --surface-3: #f0f2f5;
+  --surface-2: #fffdf8;
+  --surface-3: #fff4e6;
 
-  /* Text */
-  --text: #1a2230;
-  --text-2: #4b5565;
-  --muted: #8a93a3;
+  /* Text — deep friendly ink */
+  --text: #2b2440;
+  --text-2: #6a6285;
+  --muted: #9c93b3;
 
-  /* Borders */
-  --border: #e2e6ec;
-  --border-2: #d3d8e0;
+  /* Borders — chunky ink outline */
+  --border: #2b2440;
+  --border-2: #2b2440;
+  --border-soft: #f0e6d8;
 
-  /* Brand */
-  --accent: #0a7c4f;
-  --accent-2: #10b377;
-  --accent-dark: #065a38;
-  --accent-soft: rgba(10, 124, 79, 0.07);
-  --accent-glow: rgba(16, 179, 119, 0.22);
+  /* Brand — candy coral */
+  --accent: #ff5c8a;
+  --accent-2: #ff8fb0;
+  --accent-dark: #e23b6d;
+  --accent-soft: rgba(255, 92, 138, 0.12);
+  --accent-glow: rgba(255, 92, 138, 0.35);
 
-  /* Awards */
-  --gold: #d4a017;
-  --gold-soft: #fef3c7;
-  --gold-glow: rgba(212, 160, 23, 0.25);
-  --silver: #64748b;
+  /* Festival color pops */
+  --pop-sky: #38bdf8;
+  --pop-sky-soft: #e0f5ff;
+  --pop-lime: #5fd66f;
+  --pop-lime-soft: #e6ffe1;
+  --pop-sun: #ffc83d;
+  --pop-sun-soft: #fff3c4;
+  --pop-grape: #a974ff;
+  --pop-grape-soft: #f0e8ff;
+  --pop-tangerine: #ff8a3d;
+  --pop-tangerine-soft: #ffe9d6;
+
+  /* Awards — festival medals */
+  --gold: #ffb800;
+  --gold-soft: #fff3c4;
+  --gold-glow: rgba(255, 184, 0, 0.4);
+  --silver: #94a3b8;
   --silver-soft: #f1f5f9;
-  --silver-glow: rgba(100, 116, 139, 0.18);
-  --bronze: #b45309;
-  --bronze-soft: #fef3e2;
-  --bronze-glow: rgba(180, 83, 9, 0.18);
+  --silver-glow: rgba(148, 163, 184, 0.3);
+  --bronze: #ff8a3d;
+  --bronze-soft: #ffe9d6;
+  --bronze-glow: rgba(255, 138, 61, 0.3);
 
   /* Semantic */
-  --danger: #dc2626;
-  --danger-soft: #fef2f2;
-  --warning: #f59e0b;
-  --warning-soft: #fffbeb;
-  --info: #3b82f6;
-  --info-soft: #eff6ff;
+  --danger: #ff4757;
+  --danger-soft: #ffe5e8;
+  --warning: #ffc83d;
+  --warning-soft: #fff3c4;
+  --info: #38bdf8;
+  --info-soft: #e0f5ff;
 
-  /* Shadows */
-  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.03);
-  --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.08), 0 4px 10px rgba(15, 23, 42, 0.04);
-  --shadow-xl: 0 24px 48px rgba(15, 23, 42, 0.1), 0 8px 16px rgba(15, 23, 42, 0.05);
+  /* Shadows — sticker / hard offset */
+  --ink: #2b2440;
+  --shadow-xs: 2px 2px 0 var(--ink);
+  --shadow-sm: 3px 3px 0 var(--ink);
+  --shadow-md: 4px 4px 0 var(--ink);
+  --shadow-lg: 6px 6px 0 var(--ink);
+  --shadow-xl: 8px 8px 0 var(--ink);
 
-  /* Radius */
-  --r-sm: 8px;
-  --r: 12px;
-  --r-lg: 16px;
-  --r-xl: 24px;
+  /* Radius — big bubbly */
+  --r-sm: 14px;
+  --r: 20px;
+  --r-lg: 28px;
+  --r-xl: 36px;
 
   /* Motion */
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0.34, 1.56, 0.64, 1);
   --t-fast: 150ms var(--ease);
-  --t: 250ms var(--ease);
+  --t: 250ms var(--ease-out);
   --t-slow: 400ms var(--ease-out);
 
   /* Font */
-  --font-sans: "Plus Jakarta Sans", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-sans: "Baloo 2", "Comic Sans MS", system-ui, sans-serif;
+  --font-display: "Fredoka", "Baloo 2", system-ui, sans-serif;
 }
 
 /* ── RESET ────────────────────────────────────────────────────────────── */
@@ -4718,4 +4737,304 @@ select {
 
 .dashboard-sidebar-nav a:hover svg {
   color: var(--accent);
+}
+
+/* ==========================================================================
+   🎪 FESTIVAL SKIN — total visual override layer
+   Appended last so it wins on equal specificity. Transforms the whole app
+   into a playful, candy-colored, sticker-shadow festival theme.
+   ========================================================================== */
+
+/* Confetti backdrop */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle, var(--accent) 0 4px, transparent 5px),
+    radial-gradient(circle, var(--pop-sky) 0 4px, transparent 5px),
+    radial-gradient(circle, var(--pop-sun) 0 3px, transparent 4px),
+    radial-gradient(circle, var(--pop-lime) 0 3px, transparent 4px),
+    radial-gradient(circle, var(--pop-grape) 0 3px, transparent 4px);
+  background-position: 4% 12%, 90% 22%, 18% 78%, 82% 70%, 50% 40%;
+  background-size: 220px 220px, 260px 260px, 300px 300px, 240px 240px, 340px 340px;
+  background-repeat: repeat;
+  opacity: 0.10;
+}
+
+/* Display headings */
+h1, h2, h3,
+.glass-panel h2, .glass-panel h3,
+.panel h2, .panel h3 {
+  font-family: var(--font-display);
+  letter-spacing: 0 !important;
+}
+.glass-panel h2, .panel h2 { font-weight: 700; }
+
+/* Eyebrow → candy pill */
+.eyebrow {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: var(--pop-sun-soft);
+  border: 2px solid var(--ink);
+  color: var(--accent-dark);
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+/* Panels → solid sticker cards */
+.glass-panel,
+.panel,
+.board-glass-panel,
+.auth-card,
+.metric-stat-card,
+.overview-card,
+.command-card,
+.dashboard-snapshot-card {
+  background: var(--surface) !important;
+  border: 3px solid var(--ink) !important;
+  border-radius: var(--r-lg) !important;
+  box-shadow: var(--shadow-lg) !important;
+  backdrop-filter: none !important;
+  transition: transform var(--t), box-shadow var(--t) !important;
+}
+
+.glass-panel:hover,
+.overview-card:hover,
+.metric-stat-card:hover {
+  transform: translate(-2px, -2px) rotate(-0.4deg);
+  box-shadow: 9px 9px 0 var(--ink) !important;
+}
+
+/* Topbar / header → chunky candy bar */
+.app-topbar {
+  background: #fff !important;
+  border: 3px solid var(--ink) !important;
+  border-radius: var(--r-xl) !important;
+  box-shadow: var(--shadow-lg) !important;
+  backdrop-filter: none !important;
+}
+
+.brand-mark {
+  border-radius: 16px !important;
+  border: 3px solid var(--ink) !important;
+  background: linear-gradient(135deg, var(--accent), var(--pop-tangerine)) !important;
+  color: #fff !important;
+  box-shadow: 3px 3px 0 var(--ink) !important;
+  transform: rotate(-4deg);
+  font-family: var(--font-display);
+}
+
+.site-nav a {
+  border-radius: 999px !important;
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+.site-nav a:hover {
+  background: var(--pop-sky-soft) !important;
+  color: var(--accent-dark) !important;
+}
+.site-nav a.active {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border: 2px solid var(--ink) !important;
+  box-shadow: 2px 2px 0 var(--ink) !important;
+}
+
+.mobile-nav-toggle {
+  border-radius: 14px !important;
+  border: 3px solid var(--ink) !important;
+  box-shadow: 2px 2px 0 var(--ink) !important;
+  background: var(--pop-sun) !important;
+  color: var(--ink) !important;
+}
+
+/* Buttons → chunky press-down candy */
+.primary-btn {
+  border: 3px solid var(--ink) !important;
+  border-radius: 999px !important;
+  background: linear-gradient(135deg, var(--accent), var(--pop-tangerine)) !important;
+  color: #fff !important;
+  box-shadow: 4px 4px 0 var(--ink) !important;
+  font-family: var(--font-display);
+  font-weight: 600;
+  padding: 12px 22px !important;
+}
+.primary-btn:hover {
+  transform: translate(-2px, -2px) !important;
+  box-shadow: 6px 6px 0 var(--ink) !important;
+  filter: none !important;
+}
+.primary-btn:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0 var(--ink) !important;
+}
+
+.secondary-btn,
+.ghost-link {
+  border: 3px solid var(--ink) !important;
+  border-radius: 999px !important;
+  background: #fff !important;
+  color: var(--ink) !important;
+  box-shadow: 3px 3px 0 var(--ink) !important;
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+.secondary-btn:hover,
+.ghost-link:hover {
+  transform: translate(-1px, -1px) !important;
+  box-shadow: 4px 4px 0 var(--ink) !important;
+  background: var(--pop-sky-soft) !important;
+  color: var(--accent-dark) !important;
+}
+
+.danger-btn {
+  border: 3px solid var(--ink) !important;
+  border-radius: 999px !important;
+  background: var(--danger) !important;
+  color: #fff !important;
+  box-shadow: 3px 3px 0 var(--ink) !important;
+  font-family: var(--font-display);
+}
+.danger-btn:hover {
+  transform: translate(-1px, -1px) !important;
+  box-shadow: 4px 4px 0 var(--ink) !important;
+  background: #ff2d42 !important;
+}
+
+.ghost-link.is-disabled { box-shadow: none !important; }
+
+/* Inputs → rounded chunky fields */
+.field input,
+.field textarea,
+.field select {
+  border: 3px solid var(--ink) !important;
+  border-radius: var(--r-sm) !important;
+  background: #fff !important;
+  box-shadow: 2px 2px 0 var(--ink) !important;
+}
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  outline: none !important;
+  border-color: var(--accent) !important;
+  box-shadow: 3px 3px 0 var(--accent) !important;
+}
+.field label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Hero → big festival banner */
+.event-hero,
+.dashboard-hero-card {
+  background: linear-gradient(135deg, var(--pop-sky-soft), var(--pop-grape-soft) 50%, var(--accent-soft)) !important;
+  border: 3px solid var(--ink) !important;
+  border-radius: var(--r-xl) !important;
+  box-shadow: var(--shadow-xl) !important;
+  overflow: hidden;
+}
+
+/* Metric / stat sticker cards — playful tilt */
+.metric-stat-card { background: var(--pop-sun-soft) !important; }
+.metric-stat-card:nth-child(2) { background: var(--pop-sky-soft) !important; }
+.metric-stat-card.spotlight { background: var(--accent-soft) !important; }
+.metric-value, .overview-card-value { font-family: var(--font-display) !important; }
+
+/* Chips / pills / badges → candy pills */
+.chip,
+.pill,
+.badge,
+.dashboard-section-badge,
+.dashboard-stage-note {
+  border-radius: 999px !important;
+  border: 2px solid var(--ink) !important;
+  background: var(--pop-lime-soft) !important;
+  color: var(--ink) !important;
+  font-family: var(--font-display);
+  box-shadow: 2px 2px 0 var(--ink) !important;
+}
+
+/* Leaderboard table → fun scoreboard */
+.leaderboard th {
+  font-family: var(--font-display);
+  background: var(--ink) !important;
+  color: #fff !important;
+}
+.leaderboard tbody tr:first-child {
+  background: var(--gold-soft) !important;
+}
+.leaderboard tbody tr:nth-child(2) { background: var(--silver-soft) !important; }
+.leaderboard tbody tr:nth-child(3) { background: var(--bronze-soft) !important; }
+
+/* Empty states → friendly */
+.empty-state,
+.empty-state-v2 {
+  border: 3px dashed var(--ink) !important;
+  border-radius: var(--r-lg) !important;
+  background: var(--surface-2) !important;
+}
+.empty-state-icon {
+  border: 3px solid var(--ink) !important;
+  background: var(--pop-sun-soft) !important;
+  box-shadow: 3px 3px 0 var(--ink) !important;
+}
+.empty-state-title { font-family: var(--font-display) !important; }
+
+/* Toasts → chunky pop */
+.toast {
+  border: 3px solid var(--ink) !important;
+  border-radius: var(--r) !important;
+  box-shadow: var(--shadow-md) !important;
+  font-family: var(--font-display);
+}
+
+/* Auth screens */
+.auth-shell { background: transparent !important; }
+.auth-brand-icon,
+.auth-brand-icon-register {
+  border: 3px solid var(--ink) !important;
+  border-radius: 18px !important;
+  box-shadow: 3px 3px 0 var(--ink) !important;
+  background: linear-gradient(135deg, var(--accent), var(--pop-tangerine)) !important;
+  color: #fff !important;
+}
+
+/* Sidebar */
+.dashboard-sidebar {
+  border: 3px solid var(--ink) !important;
+  border-radius: var(--r-lg) !important;
+}
+.dashboard-sidebar-nav a {
+  border-radius: 999px !important;
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+.dashboard-sidebar-nav a:hover {
+  background: var(--pop-sky-soft) !important;
+}
+.sidebar-status-dot,
+.metric-glow-dot {
+  border: 2px solid var(--ink);
+}
+
+/* Loading card */
+.loading-card {
+  border: 3px solid var(--ink) !important;
+  border-radius: var(--r-lg) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* Wobble animation for the brand on hover */
+@keyframes festival-wobble {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}
+.site-brand:hover .brand-mark {
+  animation: festival-wobble 0.5s var(--ease) both;
 }
