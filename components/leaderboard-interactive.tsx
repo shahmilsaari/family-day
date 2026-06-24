@@ -289,7 +289,7 @@ export function LeaderboardInteractive({ leaderboard, games }: LeaderboardIntera
                     </span>
                   </div>
 
-                  <div className="podium-column">
+                  <div className="podium-column" data-rank={originalRank}>
                     <span className="podium-label">
                       {isFirst ? "CHAMPION" : isSecond ? "2nd" : "3rd"}
                     </span>
