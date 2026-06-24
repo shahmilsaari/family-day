@@ -8,3 +8,32 @@ coverage
 prisma/dev.db
 dev.db
 tsconfig.tsbuildinfo
+
+# memory-core generated files
+.memory-core.json
+.memory-core.env
+.memory-core-stats.json
+.memory-core-db-version
+.archmind/check.log
+.archmind/cache/
+.archmind/violation-history.json
+
+# memory-core generated files
+CLAUDE.md
+.github/copilot-instructions.md
+.cursorrules
+.cursor/rules/memory-core.mdc
+.windsurfrules
+.clinerules
+.roo/rules/memory-core.md
+.aider.conf.yml
+.continue/config.json
+DEVIN.md
+.amazonq/dev/guidelines.md
+.gemini/styleguide.md
+.zed/settings.json
+.idea/ai-instructions.md
+AGENTS.md
+AI_RULES.md
+ARCHITECTURE.md
+PROJECT_MEMORY.md

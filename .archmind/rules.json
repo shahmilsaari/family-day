@@ -1,0 +1,67 @@
+{
+  "rules": [
+    {
+      "id": "no-circular",
+      "name": "No circular dependencies",
+      "fromLayer": "*",
+      "toLayer": "*",
+      "allowed": false,
+      "severity": "critical",
+      "enforcement": "block"
+    },
+    {
+      "id": "domain-no-infra",
+      "name": "Domain must not import infrastructure",
+      "fromLayer": "domain",
+      "toLayer": "infrastructure",
+      "allowed": false,
+      "severity": "critical",
+      "enforcement": "block"
+    },
+    {
+      "id": "domain-no-api",
+      "name": "Domain must not import API layer",
+      "fromLayer": "domain",
+      "toLayer": "api",
+      "allowed": false,
+      "severity": "critical",
+      "enforcement": "block"
+    },
+    {
+      "id": "api-no-infra-direct",
+      "name": "API should not import infrastructure directly",
+      "fromLayer": "api",
+      "toLayer": "infrastructure",
+      "allowed": false,
+      "severity": "medium",
+      "enforcement": "warn"
+    },
+    {
+      "id": "application-no-api",
+      "name": "Application must not import API layer",
+      "fromLayer": "application",
+      "toLayer": "api",
+      "allowed": false,
+      "severity": "critical",
+      "enforcement": "block"
+    },
+    {
+      "id": "application-uses-domain",
+      "name": "Application depends on domain",
+      "fromLayer": "application",
+      "toLayer": "domain",
+      "allowed": true,
+      "severity": "low",
+      "enforcement": "suggest"
+    },
+    {
+      "id": "shared-no-domain",
+      "name": "Shared must not import domain",
+      "fromLayer": "shared",
+      "toLayer": "domain",
+      "allowed": false,
+      "severity": "medium",
+      "enforcement": "warn"
+    }
+  ]
+}

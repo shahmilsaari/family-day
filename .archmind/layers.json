@@ -1,0 +1,48 @@
+{
+  "layers": [
+    {
+      "name": "domain",
+      "paths": [
+        "src/domain/**",
+        "src/core/domain/**",
+        "src/modules/*/domain/**"
+      ],
+      "description": "Business logic, entities, use cases"
+    },
+    {
+      "name": "application",
+      "paths": [
+        "src/application/**",
+        "src/core/application/**",
+        "src/modules/*/application/**"
+      ],
+      "description": "Use cases and orchestration"
+    },
+    {
+      "name": "infrastructure",
+      "paths": [
+        "src/infrastructure/**",
+        "src/modules/*/infrastructure/**"
+      ],
+      "description": "Database, external APIs, low-level I/O"
+    },
+    {
+      "name": "api",
+      "paths": [
+        "src/api/**",
+        "src/interfaces/**",
+        "src/controllers/**"
+      ],
+      "description": "HTTP handlers, request/response"
+    },
+    {
+      "name": "shared",
+      "paths": [
+        "src/shared/**",
+        "src/utils/**",
+        "src/helpers/**"
+      ],
+      "description": "Utilities, helpers, constants"
+    }
+  ]
+}
